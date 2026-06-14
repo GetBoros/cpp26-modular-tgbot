@@ -1,0 +1,5 @@
+CompileFlags:
+  Remove: [-freflection, -fmodules-ts, -fmodule-*, -fdeps-format=*]
+
+Diagnostics:
+  Suppress: [module_not_found]
