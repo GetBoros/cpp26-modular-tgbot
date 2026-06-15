@@ -41,7 +41,7 @@ int ATGB_Parser::Set_Response_Text(const char *response_text)
             last_update_id = item["update_id"];  // set new last update id, if need get next msg
             
             // std::string pretty_json = json_data.dump(4);
-            // std::println("Received JSON:\n{}", pretty_json);  
+            // std::println("Received JSON:\n{}", pretty_json);
 
             if (item.contains("message") && item["message"].contains("text"))  
             {

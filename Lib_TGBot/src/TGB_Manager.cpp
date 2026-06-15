@@ -18,14 +18,17 @@ ATGB_Manager::ATGB_Manager()
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Manager::Initialize()
 {
+    int last_update_id;
     ATGB_Parser parser;
     ATGB_Network network;
 
-    const char *response = network.Get_Response(0);
+    last_update_id = 0;
     
-    int last_update_id = parser.Set_Response_Text(response);
-    
-    const char *response_next = network.Get_Response(last_update_id);
-
+    while(true)
+    {
+        const char *response = network.Get_Response(last_update_id);
+        last_update_id = parser.Set_Response_Text(response);
+        network.Send_Message(1775156303, "Hello, World!");  // Example chat_id and message
+    }
 }
 //------------------------------------------------------------------------------------------------------------
