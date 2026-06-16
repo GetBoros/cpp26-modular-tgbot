@@ -48,36 +48,35 @@ const char *ATGB_Network::Get_Response(int update_id) const
 {
     constexpr const int response_status_ok = 200;
 
-    while (true)
+    auto url_ts = cpr::Url { Pimpl->API_URL_GET_UPDATES };  // api_url - https://api.telegram.org/bot<TOKEN>/getUpdates
+    auto url_param = cpr::Parameters { {"timeout", "10"}, {"offset", std::to_string(update_id + 1) } };
+    
+    cpr::Response response = cpr::Get(url_ts, url_param);  // Long polling request to Telegram API
+
+    if (response.status_code == response_status_ok)
     {
-        auto url_ts = cpr::Url { Pimpl->API_URL_GET_UPDATES };  // api_url - https://api.telegram.org/bot<TOKEN>/getUpdates
-        auto url_param = cpr::Parameters { {"timeout", "10"}, {"offset", std::to_string(update_id + 1) } };
-        
-        cpr::Response response = cpr::Get(url_ts, url_param);  // Long polling request to Telegram API
+        Pimpl->Last_Response = response.text;  // Save last response for parser
 
-        if (response.status_code == response_status_ok)
-        {
-            Pimpl->Last_Response = response.text;  // Save last response for parser
-
-            return Pimpl->Last_Response.c_str();  // Return response text as C-string for parser
-        }
-        else
-        {
-            std::println("Network Error: {}", response.status_code);
-
-            std::this_thread::sleep_for(std::chrono::seconds(1) );
-        }
+        return Pimpl->Last_Response.c_str();  // Return response text as C-string for parser
     }
+    else
+    {
+        std::println("Network Error: {}", response.status_code);
+
+        std::this_thread::sleep_for(std::chrono::seconds(1) );
+    }
+
+    return 0;
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Network::Send_Message(unsigned long long chat_id, const char *message_text) const
+void ATGB_Network::Send_Message(long long chat_id, const char *message_text) const
 {
     constexpr const int response_status_ok = 200;
     const std::string method_url = Pimpl->API_URL_SEND_MESSAGE;  // api_url - https://api.telegram.org/bot<TOKEN>/sendMessage
 
     auto url_ts = cpr::Url { method_url };
     
-    // Form the body of the POST request (Payload)
+    // Form the body of the POST request (Payload) || Send msg to id chat
     auto payload_data = cpr::Payload { {"chat_id", std::to_string(chat_id) }, {"text", message_text} };
 
     cpr::Response response = cpr::Post(url_ts, payload_data);  // Send POST request to Telegram API to send message

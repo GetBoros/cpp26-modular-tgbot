@@ -25,7 +25,7 @@ ATGB_Parser::ATGB_Parser()
     Pimpl = new SPimpl();
 }
 //------------------------------------------------------------------------------------------------------------
-int ATGB_Parser::Set_Response_Text(const char *response_text)
+int ATGB_Parser::Set_Response_Text(const char *response_text, long long &chat_id)
 {
     int last_update_id;
 
@@ -40,13 +40,15 @@ int ATGB_Parser::Set_Response_Text(const char *response_text)
         {
             last_update_id = item["update_id"];  // set new last update id, if need get next msg
             
-            // std::string pretty_json = json_data.dump(4);
-            // std::println("Received JSON:\n{}", pretty_json);
+            std::string pretty_json = json_data.dump(4);
+            std::println("Received JSON:\n{}", pretty_json);
 
             if (item.contains("message") && item["message"].contains("text"))  
             {
-                std::string message_text = item["message"]["text"];
-                std::string user_name = item["message"]["from"]["first_name"];
+                chat_id = item["message"]["chat"]["id"];  // Get chat_id for sending messages
+
+                std::string message_text = item["message"]["text"];  // Get message text
+                std::string user_name = item["message"]["from"]["first_name"];  // Get sender's first name
                 
                 std::println("[{}] says: {}", user_name, message_text);
             }

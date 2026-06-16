@@ -10,7 +10,7 @@ export class ATGB_Parser
 public:
     ATGB_Parser();
     
-    int Set_Response_Text(const char *response_text);
+    int Set_Response_Text(const char *response_text, long long &chat_id);
     void Parse_Response();
 
 private:
