@@ -69,7 +69,7 @@ const char *ATGB_Network::Get_Response(int update_id) const
     return 0;
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Network::Send_Message(long long chat_id, const char *message_text) const
+void ATGB_Network::Send_Message(long long chat_id, long long message_thread_id, const char *message_text) const
 {
     constexpr const int response_status_ok = 200;
     const std::string method_url = Pimpl->API_URL_SEND_MESSAGE;  // api_url - https://api.telegram.org/bot<TOKEN>/sendMessage
@@ -77,7 +77,19 @@ void ATGB_Network::Send_Message(long long chat_id, const char *message_text) con
     auto url_ts = cpr::Url { method_url };
     
     // Form the body of the POST request (Payload) || Send msg to id chat
-    auto payload_data = cpr::Payload { {"chat_id", std::to_string(chat_id) }, {"text", message_text} };
+    // auto payload_data = cpr::Payload { {"chat_id", std::to_string(chat_id) }, {"text", message_text} };
+    std::vector<cpr::Pair> payload_fields = {
+        {"chat_id", std::to_string(chat_id) },
+        {"text", message_text}
+    };
+
+    // Если передан ID топика, добавляем его в Payload
+    if (message_thread_id != 0)
+    {
+        payload_fields.push_back({"message_thread_id", std::to_string(message_thread_id)} );
+    }
+
+    auto payload_data = cpr::Payload(payload_fields.begin(), payload_fields.end() );
 
     cpr::Response response = cpr::Post(url_ts, payload_data);  // Send POST request to Telegram API to send message
 

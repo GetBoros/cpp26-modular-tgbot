@@ -10,10 +10,13 @@ export class ATGB_Parser
 public:
     ATGB_Parser();
     
-    int Set_Response_Text(const char *response_text, long long &chat_id);
+    int Set_Response_Text(const char *response_text, long long &id_chat, long long &id_chat_topic);
     void Parse_Response();
+
+    int Variable;
 
 private:
     SPimpl *Pimpl;
+
 };
 //------------------------------------------------------------------------------------------------------------

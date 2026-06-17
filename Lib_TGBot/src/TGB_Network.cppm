@@ -12,8 +12,10 @@ public:
     void Initialize();
 
     const char *Get_Response(int update_id) const;
-    void Send_Message(long long chat_id, const char *message_text) const;
+    void Send_Message(long long chat_id, long long message_thread_id, const char *message_text) const;
 
+private:
     struct SPimpl *Pimpl;
+    
 };
 //------------------------------------------------------------------------------------------------------------

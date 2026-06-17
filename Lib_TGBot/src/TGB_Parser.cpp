@@ -25,7 +25,7 @@ ATGB_Parser::ATGB_Parser()
     Pimpl = new SPimpl();
 }
 //------------------------------------------------------------------------------------------------------------
-int ATGB_Parser::Set_Response_Text(const char *response_text, long long &chat_id)
+int ATGB_Parser::Set_Response_Text(const char *response_text, long long &id_chat, long long &id_chat_topic)
 {
     int last_update_id;
 
@@ -45,7 +45,8 @@ int ATGB_Parser::Set_Response_Text(const char *response_text, long long &chat_id
 
             if (item.contains("message") && item["message"].contains("text"))  
             {
-                chat_id = item["message"]["chat"]["id"];  // Get chat_id for sending messages
+                id_chat = item["message"]["chat"]["id"];  // Get id_chat for sending messages
+                id_chat_topic = item["message"]["message_thread_id"];
 
                 std::string message_text = item["message"]["text"];  // Get message text
                 std::string user_name = item["message"]["from"]["first_name"];  // Get sender's first name
