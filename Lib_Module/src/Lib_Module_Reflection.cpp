@@ -14,27 +14,49 @@ class ATest
 {
 
 public:
+    virtual ~ATest() = default;
+
+    ATest() : Is_Active(true), Variable(5), Data(15LL) { };
+
+    void Example_Func() {};
+
+    bool Is_Active;
     int Variable;
+    long long Data;
+
+    static int Static_Variable;
 
 };
 //------------------------------------------------------------------------------------------------------------
 template <typename type_name> void Set_Test(const type_name &object)
 {
-   // Forwards
     constexpr std::meta::info meta_info = ^^type_name;
+    constexpr auto access_ctx = std::meta::access_context::unchecked();
+    static constexpr auto fields = std::define_static_array(std::meta::nonstatic_data_members_of(meta_info, access_ctx) );
+    static constexpr auto members = std::define_static_array(std::meta::members_of(meta_info, access_ctx) );
 
-    // Init
-    // 'static constexpr' guarantees a stable compile-time address for the internal range iterator of 'template for'
-    static constexpr auto members = std::define_static_array( std::meta::nonstatic_data_members_of( meta_info, std::meta::access_context::unchecked() ) );
+    // 1.0. Print Obj fields
+    template for(constexpr auto field : fields)
+    {
+        constexpr auto member_name = std::meta::identifier_of(field);  // Caching field name
 
-    // Interaction
+        std::println("Field: {}, Value: {}", member_name, object.[:field:]);
+    }
+
+    // 2.0. Print obj methods
     template for(constexpr auto member : members)
     {
-        // Forwards
-        constexpr auto member_name = std::meta::identifier_of(member); // Caching member name
+        constexpr bool has_identifier = std::meta::has_identifier(member);
+        
+        if constexpr(has_identifier == true)
+        {
+            constexpr auto member_name = std::meta::identifier_of(member);  // Caching member name
+            constexpr bool is_func = std::meta::is_function(member);
 
-        // Interaction
-        std::println("Field: {}, Value: {}", member_name, object.[:member:]);
+            if constexpr(is_func == true)
+                std::println("Method found: {}", member_name);
+
+        }
     }
 }
 //------------------------------------------------------------------------------------------------------------
@@ -44,45 +66,34 @@ template <typename type_name> void Set_Test(const type_name &object)
 
 //------------------------------------------------------------------------------------------------------------
 template <typename type_name>
-bool search_word_in_object( const type_name &obj, const char *search_word )
+bool search_word_in_object(const type_name &obj, const char *search_word )
 {
-    // Cache meta-information about the type at compile time.
-    // Zero runtime cost.
-    constexpr std::meta::info meta_info = ^^type_name;
+    constexpr std::meta::info meta_info = ^^type_name;  // Cache meta-information about the type_name
+    constexpr auto access_ctx = std::meta::access_context::unchecked();  // and private get
+    static constexpr auto members = std::define_static_array(std::meta::nonstatic_data_members_of(meta_info, access_ctx) );
 
-    // Iterate through all class variables
-    template for ( constexpr auto member : std::define_static_array( std::meta::nonstatic_data_members_of( meta_info, std::meta::access_context::unchecked( ) ) ) )
+    template for(constexpr auto member : members)  // Iterate through all class variables
     {
-        // Get the type of the current variable ( int, bool, const char*, etc. )
-        using FieldType = decltype( obj.[:member:] );
+        using field_type = decltype(obj.[:member:]);  // splice specifiers turn meta info into code, example obj.Ammo
 
-        // Magic: if the variable type is const char*
-        if constexpr ( std::is_same_v<FieldType, const char *> )
+        if constexpr (std::is_same_v<field_type, const char *> )  // if field type is const char *
         {
-            // Cache the variable value in a local variable
-            const char *text_value = obj.[:member:];
+            const char *text_value = obj.[:member:];  // Cache the variable value in a local variable
 
-            // If pointer is not 0 and word is found
-            if ( text_value != 0 && std::string( text_value ).find( search_word ) != std::string::npos )
-            {
-                return true; // Found!
-            }
+            if (text_value != 0 && std::string(text_value).find(search_word) != std::string::npos)
+                return true;  // If pointer is not 0 and word is found
         }
-        // If the variable type is std::string
-        else if constexpr ( std::is_same_v<FieldType, std::string> )
+        else if constexpr (std::is_same_v<field_type, std::string>)  // If the variable type is std::string
         {
             const std::string &text_value = obj.[:member:];
             
-            if ( text_value.find( search_word ) != std::string::npos )
-            {
+            if (text_value.find(search_word) != std::string::npos)
                 return true;
-            }
         }
-        // If it is int or bool, the compiler simply REMOVES this code for them.
-        // No extra checks during program execution!
+        // If it is int or bool, the compiler simply REMOVES this code for them. No extra checks during program execution!
     }
 
-    return false; // Nothing found
+    return false;  // Nothing found
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -131,7 +142,7 @@ void Test()
     bool is_in_sword = search_word_in_object(sword, target_word);
     bool is_in_user = search_word_in_object(user, target_word);
 
-    std::println( "Word '{}' in sword: {}", target_word, is_in_sword );
-    std::println( "Word '{}' in user: {}", target_word, is_in_user );
+    std::println("Word '{}' in sword: {}", target_word, is_in_sword );
+    std::println("Word '{}' in user: {}", target_word, is_in_user );
 }
 //------------------------------------------------------------------------------------------------------------
