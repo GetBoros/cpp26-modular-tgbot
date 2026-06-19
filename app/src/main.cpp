@@ -30,8 +30,8 @@ void Temp()
 //------------------------------------------------------------------------------------------------------------
 int main()
 {
-    Handle_Module();
-    // Handle_TGBot();  // Bot for shop
+    // Handle_Module();
+    Handle_TGBot();  // Bot for shop
     
     return 0;
 }
