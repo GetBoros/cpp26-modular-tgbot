@@ -4,7 +4,7 @@ module;
 module Lib_Module;
 //------------------------------------------------------------------------------------------------------------
 import std;
-
+import Lib_Module_Reflection;
 import Lib_Module_Concepts;
 //------------------------------------------------------------------------------------------------------------
 
@@ -42,6 +42,7 @@ void Handle_Module()
     int number = 3, number_second = 6;
     int *ptr = &number;
 
+    Test();
     std::vector<double> vector_val = {1.1, 2.2, 3.3};
     
     Print_Only_Integers(number);

@@ -1,19 +1,35 @@
 //------------------------------------------------------------------------------------------------------------
 module;
 
-module Lib_TGBot;
+export module TGB_Parser;
 //------------------------------------------------------------------------------------------------------------
-import TGB_Manager;
+import TGB_Data;
 //------------------------------------------------------------------------------------------------------------
-
-
-
-
+class SPimpl;
 //------------------------------------------------------------------------------------------------------------
-void Handle_TGBot()
+export class AJson_Message
 {
-    ATGB_Manager manager;
+public:
+    const char *first_name;
+    const char *text;
+    
+    long long Id_Chat;
+    long long Id_Chat_Topic;
 
-    manager.Initialize();
-}
+};
+//------------------------------------------------------------------------------------------------------------
+export class ATGB_Parser
+{
+public:
+    ATGB_Parser();
+    
+    int Set_Response_Text(const char *response_text, long long &id_chat, long long &id_chat_topic);
+    void Parse_Response();
+
+    int Variable;
+
+private:
+    SPimpl *Pimpl;
+
+};
 //------------------------------------------------------------------------------------------------------------

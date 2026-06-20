@@ -1,19 +1,24 @@
 //------------------------------------------------------------------------------------------------------------
 module;
 
-module Lib_TGBot;
+export module TGB_Network;
 //------------------------------------------------------------------------------------------------------------
-import TGB_Manager;
+import TGB_Data;
 //------------------------------------------------------------------------------------------------------------
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-void Handle_TGBot()
+export class ATGB_Network
 {
-    ATGB_Manager manager;
+public:
+    ~ATGB_Network();
+    ATGB_Network();
 
-    manager.Initialize();
-}
+    void Initialize();
+    void Temp(SMessage &message);
+
+    const char *Get_Response(int update_id) const;
+    void Send_Message(long long chat_id, long long message_thread_id, const char *message_text) const;
+
+private:
+    struct SPimpl *Pimpl;
+
+};
 //------------------------------------------------------------------------------------------------------------
