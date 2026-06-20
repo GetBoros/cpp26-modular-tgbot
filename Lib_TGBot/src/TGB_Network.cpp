@@ -44,34 +44,27 @@ void ATGB_Network::Initialize()
     std::println("Bot started! Waiting for messages...");
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Network::Temp(SMessage &message)
-{
-
-}
-//------------------------------------------------------------------------------------------------------------
-const char *ATGB_Network::Get_Response(int update_id) const
+AString ATGB_Network::Get_Response(int update_id) const
 {
     constexpr const int response_status_ok = 200;
 
-    auto url_ts = cpr::Url { Pimpl->API_URL_GET_UPDATES };  // api_url - https://api.telegram.org/bot<TOKEN>/getUpdates
+    auto url_ts = cpr::Url { Pimpl->API_URL_GET_UPDATES };
     auto url_param = cpr::Parameters { {"timeout", "10"}, {"offset", std::to_string(update_id + 1) } };
     
-    cpr::Response response = cpr::Get(url_ts, url_param);  // Long polling request to Telegram API
+    cpr::Response response = cpr::Get(url_ts, url_param);
 
-    if (response.status_code == response_status_ok)
+    if(response.status_code == response_status_ok)
     {
-        Pimpl->Last_Response = response.text;  // Save last response for parser
-
-        return Pimpl->Last_Response.c_str();  // Return response text as C-string for parser
+        // Convert cpr's std::string to our fast AString and return
+        return AString(response.text.c_str(), response.text.size() );
     }
     else
     {
         std::println("Network Error: {}", response.status_code);
-
         std::this_thread::sleep_for(std::chrono::seconds(1) );
     }
 
-    return 0;
+    return AString(); // Return empty AString on error
 }
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Network::Send_Message(long long chat_id, long long message_thread_id, const char *message_text) const

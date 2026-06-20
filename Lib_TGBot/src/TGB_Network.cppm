@@ -12,9 +12,8 @@ public:
     ATGB_Network();
 
     void Initialize();
-    void Temp(SMessage &message);
 
-    const char *Get_Response(int update_id) const;
+    AString Get_Response(int update_id) const;
     void Send_Message(long long chat_id, long long message_thread_id, const char *message_text) const;
 
 private:

@@ -23,8 +23,8 @@ export class ATGB_Parser
 public:
     ATGB_Parser();
     
-    int Set_Response_Text(const char *response_text, long long &id_chat, long long &id_chat_topic);
     void Parse_Response();
+    int Parse_Response_To_Message(const AString &response_text, SMessage &out_message);
 
     int Variable;
 

@@ -10,39 +10,6 @@ module TGB_Parser;
 
 
 //------------------------------------------------------------------------------------------------------------
-struct SPimpl
-{
-    std::string Response_Text;
-
-};
-//------------------------------------------------------------------------------------------------------------
-class AChat
-{
-public:
-    long long Id;
-
-};
-//------------------------------------------------------------------------------------------------------------
-class AUser_Info
-{
-public:
-    long long Id;
-    bool Is_Bot;
-
-    std::string First_Name;
-};
-//------------------------------------------------------------------------------------------------------------
-class AMessage
-{
-public:
-    long long Message_Thread_Id;
-
-    std::string Text;
-    
-    AUser_Info From;
-    AChat Chat;
-};
-//------------------------------------------------------------------------------------------------------------
 template <size_t size> consteval std::array<char, size> To_Lower_Case(std::string_view input)
 {
     std::array<char, size> result {};
@@ -64,14 +31,28 @@ template <typename type_name> void Parse_Json(type_name &object, const nlohmann:
 template <typename field_type> void Assign_Field(field_type &field, const nlohmann::json &json_node)
 {
     constexpr bool is_class = std::is_class_v<field_type>;
-    constexpr bool is_string = std::is_same_v<field_type, std::string>;
+    constexpr bool is_astring = std::is_same_v<field_type, AString>;
+    constexpr bool is_std_string = std::is_same_v<field_type, std::string>;
 
-    if constexpr( (is_class == true) && (is_string == false) )
+    if constexpr(is_astring == true)
     {
+        // Convert nlohmann's std::string to our fast AString
+        std::string temp_str = json_node.get<std::string>();
+        field = AString(temp_str.c_str(), temp_str.size() );
+    }
+    else if constexpr(is_std_string == true)
+    {
+        // Just in case we still use std::string somewhere
+        field = json_node.get<std::string>();
+    }
+    else if constexpr(is_class == true)
+    {
+        // Recursion for nested structs (SUser_Info, SChat, etc.)
         Parse_Json(field, json_node);
     }
     else
     {
+        // Basic types (long long, bool, int)
         field = json_node.get<field_type>();
     }
 }
@@ -102,42 +83,34 @@ template <typename type_name> void Parse_Json(type_name &object, const nlohmann:
 // ATGB_Parser
 ATGB_Parser::ATGB_Parser()
 {
-    Pimpl = new SPimpl();
+
 }
 //------------------------------------------------------------------------------------------------------------
-int ATGB_Parser::Set_Response_Text(const char *response_text, long long &id_chat, long long &id_chat_topic)
+int ATGB_Parser::Parse_Response_To_Message(const AString &response_text, SMessage &out_message)
 {
     int last_update_id;
 
     last_update_id = 0;
 
-    try
+    try  // Parse JSON from our AString
     {
-        nlohmann::json json_data = nlohmann::json::parse(response_text);
+        nlohmann::json json_data = nlohmann::json::parse(response_text.Get_C_Str() );
 
-        for (auto const &item : json_data["result"])
+        for(auto const &item : json_data["result"])
         {
-            last_update_id = item["update_id"];  // set new last update id, if need get next msg
-            
-            std::string pretty_json = json_data.dump(4);
-            std::println("Received JSON:\n{}", pretty_json);
+            bool has_message;
 
-            if (item.contains("message") && item["message"].contains("text") )
+            last_update_id = item["update_id"];
+            has_message = item.contains("message");
+            if(has_message == true)
             {
-                AMessage message;
+                Parse_Json(out_message, item["message"]);  // All fields, including AString, are filled automatically.
 
-                Parse_Json(message, item["message"]);
-
-                id_chat = message.Chat.Id;
-                id_chat_topic = message.Message_Thread_Id;
-                std::string message_text = message.Text;
-                std::string user_name = message.From.First_Name;
-
-                std::println("Message text: {}, Thread ID {}", message.Text, message.Message_Thread_Id);
+                std::println("Parsed Message: [{}] says: {}", out_message.From.First_Name.Get_C_Str(), out_message.Text.Get_C_Str() );
             }
         }
     }
-    catch (nlohmann::json::exception const &e)
+    catch(const nlohmann::json::exception &e)
     {
         std::println("JSON Error: {}", e.what() );
     }
