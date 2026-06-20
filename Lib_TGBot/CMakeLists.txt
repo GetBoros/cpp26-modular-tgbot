@@ -36,12 +36,14 @@ target_sources(ALib_TGBot
       src/TGB_Parser.cppm
       src/TGB_Network.cppm
       src/TGB_Manager.cppm
+      src/TGB_Data.cppm
 
   PRIVATE  # Hiddent module realization
     src/Lib_TGBot.cpp
     src/TGB_Parser.cpp
     src/TGB_Network.cpp
     src/TGB_Manager.cpp
+    src/TGB_Data.cpp
 )
 #-------------------------------------------------------------------------------------------------------------
 target_compile_options(ALib_TGBot

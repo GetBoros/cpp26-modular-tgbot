@@ -16,6 +16,13 @@ struct SPimpl
 
 };
 //------------------------------------------------------------------------------------------------------------
+class AChat
+{
+public:
+    long long Id;
+
+};
+//------------------------------------------------------------------------------------------------------------
 class AUser_Info
 {
 public:
@@ -33,6 +40,7 @@ public:
     std::string Text;
     
     AUser_Info From;
+    AChat Chat;
 };
 //------------------------------------------------------------------------------------------------------------
 template <size_t size> consteval std::array<char, size> To_Lower_Case(std::string_view input)
@@ -116,22 +124,16 @@ int ATGB_Parser::Set_Response_Text(const char *response_text, long long &id_chat
 
             if (item.contains("message") && item["message"].contains("text") )
             {
-                id_chat = item["message"]["chat"]["id"];  // Get id_chat for sending messages
-                id_chat_topic = item["message"]["message_thread_id"];
-
-                std::string message_text = item["message"]["text"];  // Get message text
-                std::string user_name = item["message"]["from"]["first_name"];  // Get sender's first name
-                
-                std::println("[{}] says: {}", user_name, message_text);
-
-                // !!! TEMP
                 AMessage message;
-                // AUser_Info user_info;
 
                 Parse_Json(message, item["message"]);
-                // Parse_Json(user_info, item["message"]["from"]);
+
+                id_chat = message.Chat.Id;
+                id_chat_topic = message.Message_Thread_Id;
+                std::string message_text = message.Text;
+                std::string user_name = message.From.First_Name;
+
                 std::println("Message text: {}, Thread ID {}", message.Text, message.Message_Thread_Id);
-                
             }
         }
     }

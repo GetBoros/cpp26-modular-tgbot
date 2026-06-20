@@ -44,6 +44,11 @@ void ATGB_Network::Initialize()
     std::println("Bot started! Waiting for messages...");
 }
 //------------------------------------------------------------------------------------------------------------
+void ATGB_Network::Temp(SMessage &message)
+{
+
+}
+//------------------------------------------------------------------------------------------------------------
 const char *ATGB_Network::Get_Response(int update_id) const
 {
     constexpr const int response_status_ok = 200;
