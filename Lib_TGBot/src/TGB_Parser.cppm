@@ -9,6 +9,7 @@ export class ATGB_Parser
 {
 public:
     int Parse_Response_To_Message(const AString &response_text, SMessage &out_message);
+    int Parse_Updates(const AString &response_text, SUpdate &out_updates);
 
 };
 //------------------------------------------------------------------------------------------------------------

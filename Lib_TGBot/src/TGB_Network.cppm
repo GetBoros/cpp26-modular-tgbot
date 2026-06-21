@@ -14,7 +14,9 @@ public:
     void Initialize();
 
     AString Get_Response(int update_id) const;
-    void Send_Message(long long chat_id, long long message_thread_id, const char *message_text) const;
+
+    void Send_Message(long long chat_id, long long message_thread_id, const char *text) const;
+    void Send_Message_Reply(long long chat_id, long long message_thread_id, long long message_id, const char *text) const;
 
 private:
     struct SPimpl *Pimpl;
