@@ -91,11 +91,62 @@ int ATGB_Parser::Parse_Response_To_Message(const AString &response_text, SMessag
 
                 std::println("Parsed Message: [{}] says: {}", out_message.From.First_Name.Get_C_Str(), out_message.Text.Get_C_Str() );
             }
+            else if(item.contains("callback_query") == true )  // !!! TEMP
+            {
+                std::string pretty_json = json_data.dump(4);
+                std::println("Received JSON:\n{}", pretty_json);
+            }
         }
     }
     catch(const nlohmann::json::exception &e)
     {
         std::println("JSON Error: {}", e.what() );
+    }
+
+    return last_update_id;
+}
+//------------------------------------------------------------------------------------------------------------
+int ATGB_Parser::Parse_Updates(const AString &response_text, SUpdate &out_updates)
+{
+    int last_update_id = 0;
+
+    try
+    {
+        // 1.0. Parse raw string into JSON object.
+        nlohmann::json json_data = nlohmann::json::parse(response_text.Get_C_Str() );
+
+        // 2.0. Iterate through all received updates.
+        for(auto const &item : json_data["result"])
+        {
+            SUpdate current_update;
+
+            // 2.1. Magically parse the entire update object using C++26 reflection.
+            Parse_Json(current_update, item);
+
+            // 2.2. Update the highest ID to acknowledge messages later.
+            last_update_id = current_update.Update_Id;
+
+            // 2.3. Determine the type of update and log it.
+            if(current_update.Callback_Query.Id.Get_Size() > 0)
+            {
+                std::println("Button Clicked! User: [{}], Action Data: {}", 
+                    current_update.Callback_Query.From.First_Name.Get_C_Str(), 
+                    current_update.Callback_Query.Data.Get_C_Str());
+            }
+            else if(current_update.Message.Text.Get_Size() > 0)
+            {
+                std::println("Parsed Message: [{}] says: {}", 
+                    current_update.Message.From.First_Name.Get_C_Str(), 
+                    current_update.Message.Text.Get_C_Str());
+            }
+
+            // 2.4. Store parsed update.
+            out_updates = current_update;
+        }
+    }
+    catch(const nlohmann::json::exception &e)
+    {
+        std::println("JSON Error: {}", e.what());
     }
 
     return last_update_id;
@@ -153,6 +204,83 @@ Received JSON:
                 "text": "Hello"
             },
             "update_id": 875409081
+        }
+    ]
+}
+*/
+//------------------------------------------------------------------------------------------------------------
+/*
+Received JSON:
+{
+    "ok": true,
+    "result": [
+        {
+            "callback_query": {
+                "chat_instance": "-9129611791160574222",
+                "data": "action_accept",
+                "from": {
+                    "first_name": "Andrey",
+                    "id": 1775156303,
+                    "is_bot": false,
+                    "language_code": "en",
+                    "username": "GetBoros"
+                },
+                "id": "7624238266802005305",
+                "message": {
+                    "chat": {
+                        "id": -1003763586627,
+                        "is_forum": true,
+                        "title": "Diary",
+                        "type": "supergroup"
+                    },
+                    "date": 1782055956,
+                    "from": {
+                        "first_name": "GetBorosCppBot",
+                        "id": 8830860851,
+                        "is_bot": true,
+                        "username": "get_boros_cpp_bot"
+                    },
+                    "is_topic_message": true,
+                    "message_id": 78,
+                    "message_thread_id": 17,
+                    "reply_markup": {
+                        "inline_keyboard": [
+                            [
+                                {
+                                    "callback_data": "action_accept",
+                                    "text": "Accept"
+                                },
+                                {
+                                    "callback_data": "action_decline",
+                                    "text": "Decline"
+                                }
+                            ]
+                        ]
+                    },
+                    "reply_to_message": {
+                        "chat": {
+                            "id": -1003763586627,
+                            "is_forum": true,
+                            "title": "Diary",
+                            "type": "supergroup"
+                        },
+                        "date": 1782055956,
+                        "from": {
+                            "first_name": "Andrey",
+                            "id": 1775156303,
+                            "is_bot": false,
+                            "language_code": "en",
+                            "username": "GetBoros"
+                        },
+                        "is_topic_message": true,
+                        "message_id": 77,
+                        "message_thread_id": 17,
+                        "text": "Hi"
+                    },
+                    "text": "Message Handled Successfully!"
+                }
+            },
+            "update_id": 875409095
         }
     ]
 }
