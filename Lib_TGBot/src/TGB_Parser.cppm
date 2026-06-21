@@ -5,31 +5,10 @@ export module TGB_Parser;
 //------------------------------------------------------------------------------------------------------------
 import TGB_Data;
 //------------------------------------------------------------------------------------------------------------
-class SPimpl;
-//------------------------------------------------------------------------------------------------------------
-export class AJson_Message
-{
-public:
-    const char *first_name;
-    const char *text;
-    
-    long long Id_Chat;
-    long long Id_Chat_Topic;
-
-};
-//------------------------------------------------------------------------------------------------------------
 export class ATGB_Parser
 {
 public:
-    ATGB_Parser();
-    
-    void Parse_Response();
     int Parse_Response_To_Message(const AString &response_text, SMessage &out_message);
-
-    int Variable;
-
-private:
-    SPimpl *Pimpl;
 
 };
 //------------------------------------------------------------------------------------------------------------

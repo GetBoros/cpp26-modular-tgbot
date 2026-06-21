@@ -1,8 +1,9 @@
 //------------------------------------------------------------------------------------------------------------
 module;
+#include <nlohmann/json.hpp>
+
 #include <meta>
 #include <print>
-#include <nlohmann/json.hpp>
 module TGB_Parser;
 //------------------------------------------------------------------------------------------------------------
 
@@ -12,17 +13,18 @@ module TGB_Parser;
 //------------------------------------------------------------------------------------------------------------
 template <size_t size> consteval std::array<char, size> To_Lower_Case(std::string_view input)
 {
+    bool is_upper = false;
     std::array<char, size> result {};
 
     for(size_t i = 0; i < input.size(); i++)
     {
-        bool is_upper = (input[i] >= 'A') && (input[i] <= 'Z');
-
+        is_upper = (input[i] >= 'A') && (input[i] <= 'Z');
         if(is_upper == true)
             result[i] = input[i] + ('a' - 'A');
         else
             result[i] = input[i];
     }
+
     return result;
 }
 //------------------------------------------------------------------------------------------------------------
@@ -36,25 +38,16 @@ template <typename field_type> void Assign_Field(field_type &field, const nlohma
 
     if constexpr(is_astring == true)
     {
-        // Convert nlohmann's std::string to our fast AString
-        std::string temp_str = json_node.get<std::string>();
-        field = AString(temp_str.c_str(), temp_str.size() );
+        std::string str_temp = json_node.get<std::string>();
+
+        field = AString(str_temp.c_str(), str_temp.size() );  // Convert nlohmann's std::string to our fast AString
     }
-    else if constexpr(is_std_string == true)
-    {
-        // Just in case we still use std::string somewhere
+    else if constexpr(is_std_string == true)  // Just in case we still use std::string somewhere
         field = json_node.get<std::string>();
-    }
-    else if constexpr(is_class == true)
-    {
-        // Recursion for nested structs (SUser_Info, SChat, etc.)
+    else if constexpr(is_class == true)  // Recursion for nested structs (SUser_Info, SChat, etc.)
         Parse_Json(field, json_node);
-    }
-    else
-    {
-        // Basic types (long long, bool, int)
+    else  // Basic types (long long, bool, int)
         field = json_node.get<field_type>();
-    }
 }
 //------------------------------------------------------------------------------------------------------------
 template <typename type_name> void Parse_Json(type_name &object, const nlohmann::json &json_data)
@@ -66,13 +59,12 @@ template <typename type_name> void Parse_Json(type_name &object, const nlohmann:
 
     template for(constexpr auto field : fields)
     {
-        constexpr auto field_name = std::meta::identifier_of(field);
-        constexpr auto json_key_array = To_Lower_Case<field_name.size() + 1>(field_name);
-        const std::string_view json_key(json_key_array.data(), field_name.size() );
+        constexpr auto field_name = std::meta::identifier_of(field);  // e.g., "From"
+        constexpr auto json_key_array = To_Lower_Case<field_name.size() + 1>(field_name);  // "From" -> "from\0"
+        const std::string_view json_key(json_key_array.data(), field_name.size() );  // Excludes null terminator
 
-        bool has_key = json_data.contains(json_key);
-        if(has_key == true)
-            Assign_Field(object.[:field:], json_data[json_key]);
+        if(json_data.contains(json_key) == true)
+            Assign_Field(object.[:field:], json_data[json_key]);  // Pass to assignment helper
     }
 }
 //------------------------------------------------------------------------------------------------------------
@@ -81,16 +73,9 @@ template <typename type_name> void Parse_Json(type_name &object, const nlohmann:
 
 
 // ATGB_Parser
-ATGB_Parser::ATGB_Parser()
-{
-
-}
-//------------------------------------------------------------------------------------------------------------
 int ATGB_Parser::Parse_Response_To_Message(const AString &response_text, SMessage &out_message)
 {
-    int last_update_id;
-
-    last_update_id = 0;
+    int last_update_id = 0;
 
     try  // Parse JSON from our AString
     {
@@ -98,11 +83,9 @@ int ATGB_Parser::Parse_Response_To_Message(const AString &response_text, SMessag
 
         for(auto const &item : json_data["result"])
         {
-            bool has_message;
-
             last_update_id = item["update_id"];
-            has_message = item.contains("message");
-            if(has_message == true)
+
+            if(item.contains("message") == true)
             {
                 Parse_Json(out_message, item["message"]);  // All fields, including AString, are filled automatically.
 
