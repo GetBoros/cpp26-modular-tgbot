@@ -110,38 +110,34 @@ int ATGB_Parser::Parse_Updates(const AString &response_text, SUpdate &out_update
 {
     int last_update_id = 0;
 
-    try
+    try  // Parse raw string into JSON object.
     {
-        // 1.0. Parse raw string into JSON object.
         nlohmann::json json_data = nlohmann::json::parse(response_text.Get_C_Str() );
 
-        // 2.0. Iterate through all received updates.
-        for(auto const &item : json_data["result"])
+        for(auto const &item : json_data["result"])  // Iterate through all received updates.
         {
             SUpdate current_update;
 
-            // 2.1. Magically parse the entire update object using C++26 reflection.
-            Parse_Json(current_update, item);
+            Parse_Json(current_update, item);  // use reflection to parse entire object
 
-            // 2.2. Update the highest ID to acknowledge messages later.
-            last_update_id = current_update.Update_Id;
-
-            // 2.3. Determine the type of update and log it.
-            if(current_update.Callback_Query.Id.Get_Size() > 0)
+            last_update_id = current_update.Update_Id;  // Update the highest ID to acknowledge messages later.
+            
+            if(current_update.Callback_Query.Id.Get_Size() > 0)  // Determine the type of update and log it.
             {
-                std::println("Button Clicked! User: [{}], Action Data: {}", 
-                    current_update.Callback_Query.From.First_Name.Get_C_Str(), 
-                    current_update.Callback_Query.Data.Get_C_Str());
+                const char *first_name = current_update.Callback_Query.From.First_Name.Get_C_Str();
+                const char *action_data = current_update.Callback_Query.Data.Get_C_Str();
+
+                std::println("Button Clicked! User: [{}], Action Data: {}", first_name, action_data);
             }
             else if(current_update.Message.Text.Get_Size() > 0)
             {
-                std::println("Parsed Message: [{}] says: {}", 
-                    current_update.Message.From.First_Name.Get_C_Str(), 
-                    current_update.Message.Text.Get_C_Str());
+                const char *first_name = current_update.Message.From.First_Name.Get_C_Str();
+                const char *text = current_update.Message.Text.Get_C_Str();
+
+                std::println("Parsed Message: [{}] says: {}", first_name, text);
             }
 
-            // 2.4. Store parsed update.
-            out_updates = current_update;
+            out_updates = current_update;  // Store parsed update.
         }
     }
     catch(const nlohmann::json::exception &e)

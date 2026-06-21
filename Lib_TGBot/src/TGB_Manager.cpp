@@ -49,7 +49,7 @@ void ATGB_Manager::Initialize()
     {
         SUpdate update;
         
-        AString response = network.Get_Response(last_update_id);
+        AString response = network.Get_Response(last_update_id);  // Not async wait connect 10 sec
 
         if(response.Get_Size() > 0)
         {
