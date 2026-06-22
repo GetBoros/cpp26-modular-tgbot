@@ -14,6 +14,9 @@ struct SPimpl
     std::string Last_Response;
     std::string API_URL_GET_UPDATES;
     std::string API_URL_SEND_MESSAGE;
+    std::string API_URL_DELETE_MESSAGE;
+    std::string API_URL_ANSWER_CALLBACK_QUERY;
+
 };
 //------------------------------------------------------------------------------------------------------------
 
@@ -41,6 +44,8 @@ void ATGB_Network::Initialize()
     bot_token = env_token;  // Set token here
     Pimpl->API_URL_GET_UPDATES = "https://api.telegram.org/bot" + bot_token + "/getUpdates";
     Pimpl->API_URL_SEND_MESSAGE = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
+    Pimpl->API_URL_DELETE_MESSAGE = "https://api.telegram.org/bot" + bot_token + "/deleteMessage";
+    Pimpl->API_URL_ANSWER_CALLBACK_QUERY = "https://api.telegram.org/bot" + bot_token + "/answerCallbackQuery";
 
     std::println("Bot started! Waiting for messages...");
 }
@@ -85,10 +90,10 @@ void ATGB_Network::Send_Message(long long chat_id, long long message_thread_id, 
     if (message_thread_id != 0)  // if topic id not 0, add him to payload
         payload_fields.push_back( {"message_thread_id", std::to_string(message_thread_id) } );
 
-    const cpr::Payload payload_data = cpr::Payload(payload_fields.begin(), payload_fields.end() );
+    const cpr::Payload payload = cpr::Payload(payload_fields.begin(), payload_fields.end() );
 
     // 2.0. Execute API request, send POST request to Telegram API to send message and print logs
-    response = cpr::Post(url_target_str, payload_data);  
+    response = cpr::Post(url_target_str, payload);  
     if (response.status_code == response_status_ok)
         std::println("Message sent successfully to chat: {}", chat_id);
     else
@@ -126,16 +131,58 @@ void ATGB_Network::Send_Message_Reply(long long chat_id, long long message_threa
     }
 
     // 1.3. Embed inline keyboard with Accept and Decline buttons.
-    keyboard_json_str = "{\"inline_keyboard\":[[{\"text\":\"Accept\",\"callback_data\":\"action_accept\"},{\"text\":\"Decline\",\"callback_data\":\"action_decline\"}]]}";
+    // keyboard_json_str = R"({
+    //     "inline_keyboard":
+    //     [
+    //         [{"text": "Accept", "callback_data": "action_accept"}],
+    //         [{"text": "Decline", "callback_data": "action_decline"}],
+    //         [{"text": "Help", "callback_data": "action_help"}],
+    //         [{"text": "Exit", "callback_data": "action_exit"}]
+    //     ]
+    // })";
+    // payload_fields.push_back({"reply_markup", std::move(keyboard_json_str) } );  // Attach keyboard to payload.
+    keyboard_json_str = R"({
+        "inline_keyboard": [
+            [
+                {"text": "Accept", "callback_data": "action_accept"},
+                {"text": "Decline", "callback_data": "action_decline"},
+                {"text": "Help", "callback_data": "action_help"},
+                {"text": "Exit", "callback_data": "action_exit"}
+            ]
+        ]
+    })";
     payload_fields.push_back({"reply_markup", std::move(keyboard_json_str) } );  // Attach keyboard to payload.
 
-    const cpr::Payload payload_data = cpr::Payload(payload_fields.begin(), payload_fields.end() );
+    const cpr::Payload payload = cpr::Payload(payload_fields.begin(), payload_fields.end() );
 
     // 2.0. Execute API request, send POST request to Telegram API to send message and print logs
-    response = cpr::Post(url_target_str, payload_data);
+    response = cpr::Post(url_target_str, payload);
     if(response.status_code == response_status_ok)  // Output operation outcome details to logs
         std::println("Message reply sent successfully to chat: {}", chat_id);
     else
         std::println("Failed to send reply. Error: {}, Response: {}", response.status_code, response.text);
+}
+//------------------------------------------------------------------------------------------------------------
+void ATGB_Network::Answer_Callback_Query(const AString &callback_query_id)
+{
+    cpr::Url url = cpr::Url(Pimpl->API_URL_ANSWER_CALLBACK_QUERY);
+    const cpr::Payload payload = cpr::Payload { {"callback_query_id", callback_query_id.Get_C_Str() } };
+
+    cpr::Post(url,payload);
+
+    std::println("Send Answer Callback Query");
+}
+//------------------------------------------------------------------------------------------------------------
+void ATGB_Network::Delete_Message(long long chat_id, long long message_id)
+{
+    cpr::Url url = cpr::Url(Pimpl->API_URL_DELETE_MESSAGE);
+    const cpr::Payload payload = cpr::Payload {
+            {"chat_id", std::to_string(chat_id) },
+            {"message_id", std::to_string(message_id )}
+        } ;
+
+    cpr::Post(url, payload);
+
+    std::println("Bot message was deleted");
 }
 //------------------------------------------------------------------------------------------------------------

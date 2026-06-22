@@ -17,6 +17,9 @@ public:
 
     void Send_Message(long long chat_id, long long message_thread_id, const char *text) const;
     void Send_Message_Reply(long long chat_id, long long message_thread_id, long long message_id, const char *text) const;
+        
+    void Answer_Callback_Query(const AString &callback_query_id);
+    void Delete_Message(long long chat_id, long long message_id);
 
 private:
     struct SPimpl *Pimpl;
