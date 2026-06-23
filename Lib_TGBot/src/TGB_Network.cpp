@@ -14,6 +14,8 @@ struct SPimpl
     std::string Last_Response;
     std::string API_URL_GET_UPDATES;
     std::string API_URL_SEND_MESSAGE;
+    std::string API_URL_EDIT_MESSAGE_TEXT;
+    std::string API_URL_EDIT_MESSAGE_REPLY_MARKUP;
     std::string API_URL_DELETE_MESSAGE;
     std::string API_URL_ANSWER_CALLBACK_QUERY;
 
@@ -44,6 +46,8 @@ void ATGB_Network::Initialize()
     bot_token = env_token;  // Set token here
     Pimpl->API_URL_GET_UPDATES = "https://api.telegram.org/bot" + bot_token + "/getUpdates";
     Pimpl->API_URL_SEND_MESSAGE = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
+    Pimpl->API_URL_EDIT_MESSAGE_TEXT = "https://api.telegram.org/bot" + bot_token + "/editMessageText";
+    Pimpl->API_URL_EDIT_MESSAGE_REPLY_MARKUP = "https://api.telegram.org/bot" + bot_token + "/editMessageReplyMarkup";
     Pimpl->API_URL_DELETE_MESSAGE = "https://api.telegram.org/bot" + bot_token + "/deleteMessage";
     Pimpl->API_URL_ANSWER_CALLBACK_QUERY = "https://api.telegram.org/bot" + bot_token + "/answerCallbackQuery";
 
@@ -165,10 +169,19 @@ void ATGB_Network::Send_Message_Reply(long long chat_id, long long message_threa
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Network::Answer_Callback_Query(const AString &callback_query_id)
 {
+    std::string temp("Show allert example");
     cpr::Url url = cpr::Url(Pimpl->API_URL_ANSWER_CALLBACK_QUERY);
-    const cpr::Payload payload = cpr::Payload { {"callback_query_id", callback_query_id.Get_C_Str() } };
-
-    cpr::Post(url,payload);
+    const cpr::Payload payload = cpr::Payload
+    {
+        {"callback_query_id", callback_query_id.Get_C_Str() }
+    };
+    const cpr::Payload payload_test = cpr::Payload
+    {
+        {"callback_query_id", callback_query_id.Get_C_Str() },
+        {"text", temp },
+        {"show_alert", "true"} 
+    };
+    cpr::Post(url, payload);
 
     std::println("Send Answer Callback Query");
 }
@@ -176,13 +189,70 @@ void ATGB_Network::Answer_Callback_Query(const AString &callback_query_id)
 void ATGB_Network::Delete_Message(long long chat_id, long long message_id)
 {
     cpr::Url url = cpr::Url(Pimpl->API_URL_DELETE_MESSAGE);
-    const cpr::Payload payload = cpr::Payload {
-            {"chat_id", std::to_string(chat_id) },
-            {"message_id", std::to_string(message_id )}
-        } ;
+    const cpr::Payload payload = cpr::Payload
+    {
+        {"chat_id", std::to_string(chat_id)},
+        {"message_id", std::to_string(message_id)}
+    };
 
     cpr::Post(url, payload);
 
     std::println("Bot message was deleted");
+}
+//------------------------------------------------------------------------------------------------------------
+void ATGB_Network::Edit_Message_Text(long long chat_id, long long message_id, const AString &new_text_str)
+{
+    cpr::Url url = cpr::Url(Pimpl->API_URL_EDIT_MESSAGE_TEXT);
+    const cpr::Payload payload = cpr::Payload
+    {
+        {"chat_id", std::to_string(chat_id)},
+        {"message_id", std::to_string(message_id)},
+        {"text", new_text_str.Get_C_Str()}
+    };
+
+    cpr::Post(url, payload);
+}
+//------------------------------------------------------------------------------------------------------------
+void ATGB_Network::Edit_Message_Reply_Markup(long long chat_id, long long message_id, const AString &markup_json_str)
+{
+    std::string keyboard_json_str;
+    cpr::Url url = cpr::Url(Pimpl->API_URL_EDIT_MESSAGE_REPLY_MARKUP);
+
+    // !!! TEMP EXAMPLE
+    // 1.0. Define keyboard with web_app parameter, not work in group
+    // keyboard_json_str = R"({
+    //     "inline_keyboard": [
+    //         [
+    //             {"text": "Open Cabinet", "web_app": {"url": "https://animesss.com/" } }
+    //         ]
+    //     ]
+    // })";
+    // keyboard_json_str = R"({
+    //     "inline_keyboard": [
+    //         [
+    //             {"text": "Open Cabinet", "url": "https://t.me/имя_вашего_бота/имя_приложения"}
+    //         ]
+    //     ]
+    // })";
+    keyboard_json_str = R"({
+        "inline_keyboard": [
+            [
+                {"text": "Other", "callback_data": "action_accept"},
+                {"text": "Difference", "callback_data": "action_decline"},
+                {"text": "Nany", "callback_data": "action_help"},
+                {"text": "I am done", "callback_data": "action_exit"}
+            ]
+        ]
+    })";
+    // !!! TEMP EXAMPLE END
+
+    const cpr::Payload payload = cpr::Payload
+    {
+        {"chat_id", std::to_string(chat_id)},
+        {"message_id", std::to_string(message_id)},
+        {"reply_markup", keyboard_json_str}
+    };
+
+    cpr::Post(url, payload);
 }
 //------------------------------------------------------------------------------------------------------------

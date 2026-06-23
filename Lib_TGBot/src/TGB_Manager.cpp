@@ -41,8 +41,12 @@ void ATGB_Manager::Initialize()
 
             if(update.Callback_Query.Id.Get_Size() > 0)
             {
+                int size = sizeof("Handled");
+                AString temp = AString("Handled", size);
+
                 network.Answer_Callback_Query(update.Callback_Query.Id);
-                network.Delete_Message(update.Callback_Query.Message.Chat.Id, update.Callback_Query.Message.Message_Id);
+                network.Edit_Message_Reply_Markup(update.Callback_Query.Message.Chat.Id, update.Callback_Query.Message.Message_Id, temp);
+                // network.Delete_Message(update.Callback_Query.Message.Chat.Id, update.Callback_Query.Message.Message_Id);
             }
         }
     }
