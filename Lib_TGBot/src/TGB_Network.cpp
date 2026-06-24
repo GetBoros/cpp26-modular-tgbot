@@ -18,6 +18,8 @@ struct SPimpl
     std::string API_URL_EDIT_MESSAGE_REPLY_MARKUP;
     std::string API_URL_DELETE_MESSAGE;
     std::string API_URL_ANSWER_CALLBACK_QUERY;
+    std::string API_URL_SET_MY_COMMANDS;
+    std::string API_URL_DELETE_MY_COMMANDS;
 
     cpr::Session Polling_Session;
     cpr::Session Response_Session;
@@ -29,6 +31,8 @@ struct SPimpl
 // ATGB_Network
 ATGB_Network::~ATGB_Network()
 {
+    Delete_My_Commands();
+
     delete Pimpl;
 }
 //------------------------------------------------------------------------------------------------------------
@@ -52,6 +56,10 @@ void ATGB_Network::Initialize()
     Pimpl->API_URL_EDIT_MESSAGE_REPLY_MARKUP = "https://api.telegram.org/bot" + bot_token + "/editMessageReplyMarkup";
     Pimpl->API_URL_DELETE_MESSAGE = "https://api.telegram.org/bot" + bot_token + "/deleteMessage";
     Pimpl->API_URL_ANSWER_CALLBACK_QUERY = "https://api.telegram.org/bot" + bot_token + "/answerCallbackQuery";
+    Pimpl->API_URL_SET_MY_COMMANDS = "https://api.telegram.org/bot" + bot_token + "/setMyCommands";
+    Pimpl->API_URL_DELETE_MY_COMMANDS = "https://api.telegram.org/bot" + bot_token + "/deleteMyCommands";
+
+    Set_My_Commands();
 
     std::println("Bot started! Waiting for messages...");
 }
@@ -335,5 +343,59 @@ void ATGB_Network::Edit_Message_Reply_Markup(long long chat_id, long long messag
     };
 
     cpr::Post(url, payload);
+}
+//------------------------------------------------------------------------------------------------------------
+void ATGB_Network::Set_My_Commands() const
+{
+    bool is_success;
+    int status_code;
+    std::string commands_json_str;
+    cpr::Url url_target_str;
+    cpr::Response response;
+    constexpr int response_status_ok = 200;
+
+    url_target_str = cpr::Url{Pimpl->API_URL_SET_MY_COMMANDS};
+    is_success = false;
+    commands_json_str =
+    R"([
+        {"command": "enter", "description": "In progress"},
+        {"command": "settings", "description": "In progress"}
+    ])";
+    const cpr::Payload payload = cpr::Payload
+    {
+        {"commands", commands_json_str}
+    };
+
+    response = cpr::Post(url_target_str, payload);
+    status_code = response.status_code; // Получение HTTP-кода
+    if(status_code == response_status_ok)
+        is_success = true;
+
+    if(is_success == true)
+        std::println("Menu commands successfully registered!");
+    else
+        std::println("Failed to register menu. Error: {}, Response: {}", status_code, response.text);
+}
+//------------------------------------------------------------------------------------------------------------
+void ATGB_Network::Delete_My_Commands() const
+{
+    bool is_success;
+    int status_code;
+    cpr::Url url_target_str;
+    cpr::Response response;
+    constexpr int response_status_ok = 200;
+
+    is_success = false;
+    url_target_str = cpr::Url { Pimpl->API_URL_DELETE_MY_COMMANDS };
+
+    response = cpr::Post(url_target_str);
+    status_code = response.status_code;
+    if(status_code == response_status_ok)
+        is_success = true;
+
+    if(is_success == true)
+        std::println("Menu commands successfully deleted from Telegram servers.");
+    else
+        std::println("Failed to delete menu. Error: {}", status_code);
 }
 //------------------------------------------------------------------------------------------------------------

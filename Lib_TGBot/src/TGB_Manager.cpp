@@ -61,7 +61,6 @@ void ATGB_Manager::Tick()
                 network.Edit_Message_Reply_Markup(update.Callback_Query.Message.Chat.Id, update.Callback_Query.Message.Message_Id, text_count);
                 // network.Delete_Message(update.Callback_Query.Message.Chat.Id, update.Callback_Query.Message.Message_Id);
             }
-
         }
     }
 }

@@ -27,6 +27,9 @@ public:
     void Edit_Message_Reply_Markup(long long chat_id, long long message_id, const AString &markup_json_str);
 
 private:
+    void Set_My_Commands() const;  // Set menu in bot private chat
+    void Delete_My_Commands() const;  // Delete menu in bot private chat
+
     struct SPimpl *Pimpl;
 
 };
