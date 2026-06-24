@@ -106,6 +106,23 @@ int ATGB_Parser::Parse_Response_To_Message(const AString &response_text, SMessag
     return last_update_id;
 }
 //------------------------------------------------------------------------------------------------------------
+double ATGB_Parser::Parse_NBU_USD_Rate(const AString &response_text, SExchange_Rate &exchange_rate) const
+{
+    double usd_rate;
+    nlohmann::json json_data;
+
+    usd_rate = 0.0;
+    json_data = nlohmann::json::parse(response_text.Get_C_Str() );
+    
+    Print_Json(response_text);
+    Parse_Json(exchange_rate, json_data[0]);  // use reflection to parse entire object
+
+    if( (json_data.is_array() == true) && (json_data.empty() == false) )
+        usd_rate = json_data[0]["rate"].get<double>();  // Extract rate field from the first object in the array
+
+    return usd_rate;
+}
+//------------------------------------------------------------------------------------------------------------
 int ATGB_Parser::Parse_Updates(const AString &response_text, SUpdate &out_updates)
 {
     int last_update_id = 0;
@@ -142,15 +159,27 @@ int ATGB_Parser::Parse_Updates(const AString &response_text, SUpdate &out_update
     }
     catch(const nlohmann::json::exception &e)
     {
-        std::println("JSON Error: {}", e.what());
+        std::println("JSON Error: {}", e.what() );
     }
 
     return last_update_id;
 }
 //------------------------------------------------------------------------------------------------------------
+void ATGB_Parser::Print_Json(const AString &response_text) const
+{
+    nlohmann::json json_data;
+
+    json_data = nlohmann::json::parse(response_text.Get_C_Str() );
+
+    std::string pretty_json = json_data.dump(4);
+    std::println("Received JSON:\n{}", pretty_json);    
+}
+//------------------------------------------------------------------------------------------------------------
 /*
+
 std::string pretty_json = json_data.dump(4);
 std::println("Received JSON:\n{}", pretty_json);
+
 Received JSON:
 {
     "ok": true,

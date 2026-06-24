@@ -72,3 +72,14 @@ export struct SUpdate
     SCallback_Query Callback_Query;
 };
 //------------------------------------------------------------------------------------------------------------
+export struct SExchange_Rate
+{
+    int R030;
+    double Rate;
+
+    AString Cc;
+    AString Exchangedate;
+    AString Special;
+    AString Txt;
+};
+//------------------------------------------------------------------------------------------------------------

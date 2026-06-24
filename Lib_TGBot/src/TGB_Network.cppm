@@ -13,12 +13,14 @@ public:
 
     void Initialize();
 
+    AString Get_NBU_USD_Rate() const;
     AString Get_Response(int update_id) const;
-
+    AString Connect(int update_id) const;
+    
     void Send_Message(long long chat_id, long long message_thread_id, const char *text) const;
     void Send_Message_Reply(long long chat_id, long long message_thread_id, long long message_id, const char *text) const;
         
-    void Answer_Callback_Query(const AString &callback_query_id);
+    bool Answer_Callback_Query(const AString &callback_query_id) const;
     void Delete_Message(long long chat_id, long long message_id);
 
     void Edit_Message_Text(long long chat_id, long long message_id, const AString &new_text_str);

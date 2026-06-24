@@ -19,6 +19,8 @@ struct SPimpl
     std::string API_URL_DELETE_MESSAGE;
     std::string API_URL_ANSWER_CALLBACK_QUERY;
 
+    cpr::Session Polling_Session;
+    cpr::Session Response_Session;
 };
 //------------------------------------------------------------------------------------------------------------
 
@@ -54,6 +56,62 @@ void ATGB_Network::Initialize()
     std::println("Bot started! Waiting for messages...");
 }
 //------------------------------------------------------------------------------------------------------------
+AString ATGB_Network::Get_NBU_USD_Rate() const
+{
+    int status_code;
+    cpr::Url url_target_str;
+    cpr::Response response;
+    constexpr int response_status_ok = 200;
+
+    // 1.0. Configure target URL (NBU official open API)
+    url_target_str = cpr::Url{"https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json"};
+
+    // 1.1. Execute standard GET request
+    response = cpr::Get(url_target_str);
+    status_code = response.status_code;
+
+    // 2.0. Handle and forward response
+    if(status_code == response_status_ok)
+    {
+        return AString(response.text.c_str(), static_cast<long long>(response.text.size()));
+    }
+
+    return AString();
+}
+//------------------------------------------------------------------------------------------------------------
+AString ATGB_Network::Connect(int update_id) const
+{
+    int status_code;
+    cpr::Url url_target_str;
+    cpr::Parameters url_param;
+    cpr::Response response;
+    constexpr int response_status_ok = 200;
+
+    // 1.0. Configure request targets and parameters
+    url_target_str = cpr::Url{Pimpl->API_URL_GET_UPDATES};
+    url_param = cpr::Parameters{ {"timeout", "10"}, {"offset", std::to_string(update_id + 1)} };
+
+    // 1.1. Update session settings
+    Pimpl->Polling_Session.SetUrl(url_target_str);
+    Pimpl->Polling_Session.SetParameters(url_param);
+
+    // 1.2. Execute persistent request
+    response = Pimpl->Polling_Session.Get();
+    status_code = response.status_code;  // Extract HTTP status
+
+    // 2.0. Handle response results
+    if(status_code == response_status_ok)
+    {
+        return AString(response.text.c_str(), static_cast<long long>(response.text.size() ) );
+    }
+
+    // 2.1. Handle failures and cooldown
+    std::println("Network Error: {}", status_code);
+    std::this_thread::sleep_for(std::chrono::seconds(1) );
+
+    return AString();
+}
+//------------------------------------------------------------------------------------------------------------
 AString ATGB_Network::Get_Response(int update_id) const
 {
     cpr::Response response;
@@ -70,7 +128,7 @@ AString ATGB_Network::Get_Response(int update_id) const
     std::println("Network Error: {}", response.status_code);
     std::this_thread::sleep_for(std::chrono::seconds(1) );
 
-    return AString(); // Return empty AString on error
+    return AString();  // Return empty AString on error
 }
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Network::Send_Message(long long chat_id, long long message_thread_id, const char *text) const
@@ -167,10 +225,18 @@ void ATGB_Network::Send_Message_Reply(long long chat_id, long long message_threa
         std::println("Failed to send reply. Error: {}, Response: {}", response.status_code, response.text);
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Network::Answer_Callback_Query(const AString &callback_query_id)
+bool ATGB_Network::Answer_Callback_Query(const AString &callback_query_id) const
 {
+    bool is_success;
+    int status_code;
     std::string temp("Show allert example");
-    cpr::Url url = cpr::Url(Pimpl->API_URL_ANSWER_CALLBACK_QUERY);
+    cpr::Url url_target_str;
+    cpr::Parameters url_param;
+    cpr::Response response;
+    constexpr int response_status_ok = 200;
+
+    // 1.0. Setup target and fast response parameters
+    url_target_str = cpr::Url { Pimpl->API_URL_ANSWER_CALLBACK_QUERY };
     const cpr::Payload payload = cpr::Payload
     {
         {"callback_query_id", callback_query_id.Get_C_Str() }
@@ -181,9 +247,24 @@ void ATGB_Network::Answer_Callback_Query(const AString &callback_query_id)
         {"text", temp },
         {"show_alert", "true"} 
     };
-    cpr::Post(url, payload);
+
+    is_success = false;
+
+    // 1.1. Apply options to response session
+    Pimpl->Response_Session.SetUrl(url_target_str);
+    Pimpl->Response_Session.SetPayload(payload_test);
+
+    // 1.2. Execute instant request over pre-established connection
+    response = Pimpl->Response_Session.Post();
+    status_code = response.status_code;
+
+    // 2.0. Check operation result
+    if(status_code == response_status_ok)
+        is_success = true;
 
     std::println("Send Answer Callback Query");
+
+    return is_success;
 }
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Network::Delete_Message(long long chat_id, long long message_id)
