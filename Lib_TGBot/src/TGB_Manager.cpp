@@ -38,12 +38,12 @@ void ATGB_Manager::Tick()
     response = network.Get_NBU_USD_Rate();
     usd = parser.Parse_NBU_USD_Rate(response, exchange_rate);
     msg_send = std::format("Currency: {} - {:.4f}, {}", exchange_rate.Cc.Get_C_Str(), exchange_rate.Rate, exchange_rate.Exchangedate.Get_C_Str() );
-
+    
     while(true)
     {
         SUpdate update;
 
-        response = network.Connect(last_update_id);  // Not async wait connect 10 sec
+        response = network.Get_Update_Response(last_update_id);  // Not async wait connect 10 sec
 
         if(response.Get_Size() > 0)
         {

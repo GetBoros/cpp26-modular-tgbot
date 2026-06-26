@@ -12,20 +12,25 @@ public:
     AString();
     AString(const char *input_data, long long input_size);
     AString(const AString &other);
+    AString(AString &&other) noexcept;
 
     AString &operator=(const AString &other);
+    AString &operator=(AString &&other) noexcept;
+
+    void Assign(const char *input_data, long long input_size);
+    void Clear();
 
     const char *Get_C_Str() const;
     long long Get_Size() const;
 
 private:
-    static void Copy_Memory(char *destination, const char *source, long long length);
-
     bool Is_Heap;
     long long Size;
     long long Capacity;
     char *Heap_Data;
     char Local_Data[24];
+
+    static void Copy_Memory(char *destination, const char *source, long long length);
 
 };
 //------------------------------------------------------------------------------------------------------------
