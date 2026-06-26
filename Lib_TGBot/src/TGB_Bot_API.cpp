@@ -2,7 +2,7 @@
 module;
 #include <print>
 #include <cpr/cpr.h>
-module TGB_Network;
+module TGB_Bot_API;
 //------------------------------------------------------------------------------------------------------------
 
 
@@ -29,26 +29,27 @@ struct SPimpl
 
 
 
-// ATGB_Network
-ATGB_Network::~ATGB_Network()
+// ATGB_Bot_API
+ATGB_Bot_API::~ATGB_Bot_API()
 {
     Delete_My_Commands();
 
     delete Pimpl;
 }
 //------------------------------------------------------------------------------------------------------------
-ATGB_Network::ATGB_Network()
+ATGB_Bot_API::ATGB_Bot_API()
 {
     Pimpl = new SPimpl();
 
     Initialize();
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Network::Initialize()
+void ATGB_Bot_API::Initialize()
 {
     constexpr const int response_status_ok = 200;
     const char *env_token = std::getenv("TELEGRAM_BOT_TOKEN");
     std::string bot_token;
+    cpr::Url url;
 
     bot_token = env_token;  // Set token here
     Pimpl->API_URL_GET_UPDATES = "https://api.telegram.org/bot" + bot_token + "/getUpdates";
@@ -60,55 +61,38 @@ void ATGB_Network::Initialize()
     Pimpl->API_URL_SET_MY_COMMANDS = "https://api.telegram.org/bot" + bot_token + "/setMyCommands";
     Pimpl->API_URL_DELETE_MY_COMMANDS = "https://api.telegram.org/bot" + bot_token + "/deleteMyCommands";
 
+    url = cpr::Url { Pimpl->API_URL_GET_UPDATES };
+    Pimpl->Polling_Session.SetUrl(url);  // Init polling session
+
     Set_My_Commands();
 
     std::println("Bot started! Waiting for messages...");
 }
 //------------------------------------------------------------------------------------------------------------
-AString ATGB_Network::Get_Update_Response(int update_id) const
+void ATGB_Bot_API::Poll_Events(int update_id, AString &response_result) const
 {
-    cpr::Url url;
-    cpr::Parameters url_param;
+    cpr::Parameters update_param;
     cpr::Response response;
     constexpr int response_status_ok = 200;
 
     // 1.0. Configure request targets and parameters
-    url = cpr::Url { Pimpl->API_URL_GET_UPDATES };
-    url_param = cpr::Parameters{ {"timeout", "10"}, {"offset", std::to_string(update_id + 1) } };
+    update_param = cpr::Parameters { {"timeout", "10"}, {"offset", std::to_string(update_id + 1) } };
+    Pimpl->Polling_Session.SetParameters(update_param);  // Update session settings
 
-    // 1.1. Update session settings
-    Pimpl->Polling_Session.SetUrl(url);
-    Pimpl->Polling_Session.SetParameters(url_param);
-
-    // 1.2. Execute persistent request handle response results
-    response = Pimpl->Polling_Session.Get();
+    // 1.1. Execute persistent request and update buffer in-place
+    response = Pimpl->Polling_Session.Get();  // wait 10 second if not have new msgs
     if(response.status_code == response_status_ok)
-        return AString(response.text.c_str(), static_cast<long long>(response.text.size() ) );
+        response_result.Assign(response.text.c_str(), static_cast<long long>(response.text.size() ) );
+    else
+    {
+        response_result.Clear();
 
-    // 2.1. Handle failures and cooldown
-    std::println("Network Error: {}", response.status_code);
-    std::this_thread::sleep_for(std::chrono::seconds(1) );
-
-    return AString();
+        std::println("Network Error: {}", response.status_code);
+        std::this_thread::sleep_for(std::chrono::seconds(1) );
+    }
 }
 //------------------------------------------------------------------------------------------------------------
-AString ATGB_Network::Get_NBU_USD_Rate() const
-{
-    cpr::Url url;
-    cpr::Response response;
-    constexpr int response_status_ok = 200;
-
-    // 1.0. Configure target URL (NBU official open API)
-    url = cpr::Url{"https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json"};
-
-    response = cpr::Get(url);  // Execute standard GET request
-    if(response.status_code == response_status_ok)
-        return AString(response.text.c_str(), static_cast<long long>(response.text.size()));
-
-    return AString();
-}
-//------------------------------------------------------------------------------------------------------------
-void ATGB_Network::Send_Message(long long chat_id, long long message_thread_id, const char *text) const
+void ATGB_Bot_API::Send_Message(long long chat_id, long long message_thread_id, const char *text) const
 {
     std::vector<cpr::Pair> payload_fields;
     std::string url_method_str;
@@ -142,7 +126,7 @@ void ATGB_Network::Send_Message(long long chat_id, long long message_thread_id, 
         std::println("Failed to send message. Error: {}, Response: {}", response.status_code, response.text);
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Network::Send_Message_Reply(long long chat_id, long long message_thread_id, long long message_id, const char *text) const
+void ATGB_Bot_API::Send_Message_Reply(long long chat_id, long long message_thread_id, long long message_id, const char *text) const
 {
     std::vector<cpr::Pair> payload_fields;
     std::string url_method_str;
@@ -208,7 +192,7 @@ void ATGB_Network::Send_Message_Reply(long long chat_id, long long message_threa
         std::println("Failed to send reply. Error: {}, Response: {}", response.status_code, response.text);
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Network::Answer_Callback_Query(const AString &callback_query_id) const
+void ATGB_Bot_API::Answer_Callback_Query(const AString &callback_query_id) const
 {
     std::string str_allert("Show allert example");
     cpr::Url url;
@@ -241,7 +225,7 @@ void ATGB_Network::Answer_Callback_Query(const AString &callback_query_id) const
         std::println("Failed to send reply. Error: {}, Response: {}", response.status_code, response.text);
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Network::Delete_Message(long long chat_id, long long message_id)
+void ATGB_Bot_API::Delete_Message(long long chat_id, long long message_id)
 {
     cpr::Url url = cpr::Url(Pimpl->API_URL_DELETE_MESSAGE);
     const cpr::Payload payload = cpr::Payload
@@ -257,7 +241,7 @@ void ATGB_Network::Delete_Message(long long chat_id, long long message_id)
     std::println("Bot message was deleted");
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Network::Edit_Message_Text(long long chat_id, long long message_id, const AString &new_text_str)
+void ATGB_Bot_API::Edit_Message_Text(long long chat_id, long long message_id, const AString &new_text_str)
 {
     cpr::Url url = cpr::Url(Pimpl->API_URL_EDIT_MESSAGE_TEXT);
     const cpr::Payload payload = cpr::Payload
@@ -270,7 +254,7 @@ void ATGB_Network::Edit_Message_Text(long long chat_id, long long message_id, co
     cpr::Post(url, payload);
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Network::Edit_Message_Reply_Markup(long long chat_id, long long message_id, const AString &markup_json_str)
+void ATGB_Bot_API::Edit_Message_Reply_Markup(long long chat_id, long long message_id, const AString &markup_json_str)
 {
     std::string keyboard_json_str;
     cpr::Url url = cpr::Url(Pimpl->API_URL_EDIT_MESSAGE_REPLY_MARKUP);
@@ -313,7 +297,23 @@ void ATGB_Network::Edit_Message_Reply_Markup(long long chat_id, long long messag
     cpr::Post(url, payload);
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Network::Set_My_Commands() const
+AString ATGB_Bot_API::Get_NBU_USD_Rate() const
+{
+    cpr::Url url;
+    cpr::Response response;
+    constexpr int response_status_ok = 200;
+
+    // 1.0. Configure target URL (NBU official open API)
+    url = cpr::Url{"https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json"};
+
+    response = cpr::Get(url);  // Execute standard GET request
+    if(response.status_code == response_status_ok)
+        return AString(response.text.c_str(), static_cast<long long>(response.text.size()));
+
+    return AString();
+}
+//------------------------------------------------------------------------------------------------------------
+void ATGB_Bot_API::Set_My_Commands() const
 {
     std::string commands_json_str;
     cpr::Url url;
@@ -339,7 +339,7 @@ void ATGB_Network::Set_My_Commands() const
         std::println("Failed to register menu. Error: {}, Response: {}", response.status_code, response.text);
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Network::Delete_My_Commands() const
+void ATGB_Bot_API::Delete_My_Commands() const
 {
     cpr::Url url;
     cpr::Response response;
@@ -354,7 +354,7 @@ void ATGB_Network::Delete_My_Commands() const
         std::println("Failed to delete menu. Error: {}", response.status_code);
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Network::Send_Game_Web_App(long long chat_id, const char *text, const char *url_str) const
+void ATGB_Bot_API::Send_Game_Web_App(long long chat_id, const char *text, const char *url_str) const
 {
     std::string url_method_str;
     std::string keyboard_json_str;

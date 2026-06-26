@@ -4,7 +4,7 @@ module;
 
 #include <meta>
 #include <print>
-module TGB_Parser;
+module TGB_Deserializer;
 //------------------------------------------------------------------------------------------------------------
 
 
@@ -28,7 +28,7 @@ template <size_t size> consteval std::array<char, size> To_Lower_Case(std::strin
     return result;
 }
 //------------------------------------------------------------------------------------------------------------
-template <typename type_name> void Parse_Json(type_name &object, const nlohmann::json &json_data);
+template <typename type_name> void Deserialize_Json(type_name &object, const nlohmann::json &json_data);
 //------------------------------------------------------------------------------------------------------------
 template <typename field_type> void Assign_Field(field_type &field, const nlohmann::json &json_node)
 {
@@ -38,19 +38,19 @@ template <typename field_type> void Assign_Field(field_type &field, const nlohma
 
     if constexpr(is_astring == true)
     {
-        std::string str_temp = json_node.get<std::string>();
+        std::string str_json_node = json_node.get<std::string>();
 
-        field = AString(str_temp.c_str(), str_temp.size() );  // Convert nlohmann's std::string to our fast AString
+        field.Assign(str_json_node.c_str(), str_json_node.size() );
     }
     else if constexpr(is_std_string == true)  // Just in case we still use std::string somewhere
         field = json_node.get<std::string>();
     else if constexpr(is_class == true)  // Recursion for nested structs (SUser_Info, SChat, etc.)
-        Parse_Json(field, json_node);
+        Deserialize_Json(field, json_node);
     else  // Basic types (long long, bool, int)
         field = json_node.get<field_type>();
 }
 //------------------------------------------------------------------------------------------------------------
-template <typename type_name> void Parse_Json(type_name &object, const nlohmann::json &json_data)
+template <typename type_name> void Deserialize_Json(type_name &object, const nlohmann::json &json_data)
 {
     constexpr std::meta::info meta_info = ^^type_name;
     constexpr auto access_ctx = std::meta::access_context::unchecked();
@@ -72,104 +72,36 @@ template <typename type_name> void Parse_Json(type_name &object, const nlohmann:
 
 
 
-// ATGB_Parser
-int ATGB_Parser::Parse_Response_To_Message(const AString &response_text, SMessage &out_message)
+// ATGB_Deserializer
+void ATGB_Deserializer::Deserialize_Event(const AString &response, STelegram_Event &telegram_event)
 {
-    int last_update_id = 0;
-
-    try  // Parse JSON from our AString
-    {
-        nlohmann::json json_data = nlohmann::json::parse(response_text.Get_C_Str() );
-
-        for(auto const &item : json_data["result"])
-        {
-            last_update_id = item["update_id"];
-
-            if(item.contains("message") == true)
-            {
-                Parse_Json(out_message, item["message"]);  // All fields, including AString, are filled automatically.
-
-                std::println("Parsed Message: [{}] says: {}", out_message.From.First_Name.Get_C_Str(), out_message.Text.Get_C_Str() );
-            }
-            else if(item.contains("callback_query") == true )  // !!! TEMP
-            {
-                std::string pretty_json = json_data.dump(4);
-                std::println("Received JSON:\n{}", pretty_json);
-            }
-        }
-    }
-    catch(const nlohmann::json::exception &e)
-    {
-        std::println("JSON Error: {}", e.what() );
-    }
-
-    return last_update_id;
-}
-//------------------------------------------------------------------------------------------------------------
-double ATGB_Parser::Parse_NBU_USD_Rate(const AString &response_text, SExchange_Rate &exchange_rate) const
-{
-    double usd_rate;
-    nlohmann::json json_data;
-
-    usd_rate = 0.0;
-    json_data = nlohmann::json::parse(response_text.Get_C_Str() );
-    
-    Print_Json(response_text);
-    Parse_Json(exchange_rate, json_data[0]);  // use reflection to parse entire object
-
-    if( (json_data.is_array() == true) && (json_data.empty() == false) )
-        usd_rate = json_data[0]["rate"].get<double>();  // Extract rate field from the first object in the array
-
-    return usd_rate;
-}
-//------------------------------------------------------------------------------------------------------------
-int ATGB_Parser::Parse_Updates(const AString &response_text, SUpdate &out_updates)
-{
-    int last_update_id = 0;
-
     try  // Parse raw string into JSON object.
     {
-        nlohmann::json json_data = nlohmann::json::parse(response_text.Get_C_Str() );
+        nlohmann::json json_data = nlohmann::json::parse(response.Get_C_Str() );
 
         for(auto const &item : json_data["result"])  // Iterate through all received updates.
-        {
-            SUpdate current_update;
-
-            Parse_Json(current_update, item);  // use reflection to parse entire object
-
-            last_update_id = current_update.Update_Id;  // Update the highest ID to acknowledge messages later.
-            
-            if(current_update.Callback_Query.Id.Get_Size() > 0)  // Determine the type of update and log it.
-            {
-                const char *first_name = current_update.Callback_Query.From.First_Name.Get_C_Str();
-                const char *action_data = current_update.Callback_Query.Data.Get_C_Str();
-
-                std::println("Button Clicked! User: [{}], Action Data: {}", first_name, action_data);
-            }
-            else if(current_update.Message.Text.Get_Size() > 0)
-            {
-                const char *first_name = current_update.Message.From.First_Name.Get_C_Str();
-                const char *text = current_update.Message.Text.Get_C_Str();
-
-                std::println("Parsed Message: [{}] says: {}", first_name, text);
-            }
-
-            out_updates = current_update;  // Store parsed update.
-        }
+            Deserialize_Json(telegram_event, item);  // use reflection to parse entire object
     }
     catch(const nlohmann::json::exception &e)
     {
         std::println("JSON Error: {}", e.what() );
     }
-
-    return last_update_id;
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Parser::Print_Json(const AString &response_text) const
+void ATGB_Deserializer::Deserialize_NBU_USD_Rate(const AString &response, SCurrency_Rate &currency_rate) const
 {
     nlohmann::json json_data;
 
-    json_data = nlohmann::json::parse(response_text.Get_C_Str() );
+    json_data = nlohmann::json::parse(response.Get_C_Str() );
+    
+    Deserialize_Json(currency_rate, json_data[0]);  // use reflection to parse entire object
+}
+//------------------------------------------------------------------------------------------------------------
+void ATGB_Deserializer::Print_Json(const AString &response) const
+{
+    nlohmann::json json_data;
+
+    json_data = nlohmann::json::parse(response.Get_C_Str() );
 
     std::string pretty_json = json_data.dump(4);
     std::println("Received JSON:\n{}", pretty_json);    

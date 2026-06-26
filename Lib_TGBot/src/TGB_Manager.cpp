@@ -5,8 +5,8 @@ module TGB_Manager;
 //------------------------------------------------------------------------------------------------------------
 import std;
 import TGB_Data;
-import TGB_Parser;
-import TGB_Network;
+import TGB_Bot_API;
+import TGB_Deserializer;
 //------------------------------------------------------------------------------------------------------------
 
 
@@ -25,43 +25,45 @@ void ATGB_Manager::Initialize()
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Manager::Tick()
 {
-    int last_update_id;
+    int last_processed_event_id;
     double usd;
-    std::string msg_send;
-    SExchange_Rate exchange_rate;
+    std::string formatted_rate_msg;
+    SCurrency_Rate currency_rate;
 
     AString response;
-    ATGB_Parser parser;
-    ATGB_Network network;
+    ATGB_Deserializer deserializer;
+    ATGB_Bot_API bot_api;
 
-    last_update_id = 0;
-    response = network.Get_NBU_USD_Rate();
-    usd = parser.Parse_NBU_USD_Rate(response, exchange_rate);
-    msg_send = std::format("Currency: {} - {:.4f}, {}", exchange_rate.Cc.Get_C_Str(), exchange_rate.Rate, exchange_rate.Exchangedate.Get_C_Str() );
+    last_processed_event_id = 0;
+    response = bot_api.Get_NBU_USD_Rate();
+    deserializer.Deserialize_NBU_USD_Rate(response, currency_rate);
+    usd = currency_rate.Rate;
+    formatted_rate_msg = std::format("Currency: {} - {:.4f}, {}", currency_rate.Cc.Get_C_Str(), currency_rate.Rate, currency_rate.Exchangedate.Get_C_Str() );
     
     while(true)
     {
-        SUpdate update;
+        STelegram_Event telegram_event;
 
-        response = network.Get_Update_Response(last_update_id);  // Not async wait connect 10 sec
+        bot_api.Poll_Events(last_processed_event_id, response);  // Not async wait connect 10 sec
+        if(response.Get_Size() <= 0)
+            return;  // if no connection or else problem - quit
 
-        if(response.Get_Size() > 0)
+        deserializer.Deserialize_Event(response, telegram_event);
+
+        if(telegram_event.Message.Message_Id != 0)  // !!! Example reply
+            bot_api.Send_Message_Reply(telegram_event.Message.Chat.Id, telegram_event.Message.Message_Thread_Id, telegram_event.Message.Message_Id, formatted_rate_msg.c_str() );
+
+        if(telegram_event.Callback_Query.Id.Get_Size() > 0)
         {
-            last_update_id = parser.Parse_Updates(response, update);
+            int size = sizeof("Handled");
+            AString text_count = AString("Handled", size);
 
-            if(update.Message.Message_Id != 0)  // !!! Example reply
-                network.Send_Message_Reply(update.Message.Chat.Id, update.Message.Message_Thread_Id, update.Message.Message_Id, msg_send.c_str() );
-
-            if(update.Callback_Query.Id.Get_Size() > 0)
-            {
-                int size = sizeof("Handled");
-                AString text_count = AString("Handled", size);
-
-                network.Answer_Callback_Query(update.Callback_Query.Id);
-                network.Edit_Message_Reply_Markup(update.Callback_Query.Message.Chat.Id, update.Callback_Query.Message.Message_Id, text_count);
-                // network.Delete_Message(update.Callback_Query.Message.Chat.Id, update.Callback_Query.Message.Message_Id);
-            }
+            bot_api.Answer_Callback_Query(telegram_event.Callback_Query.Id);
+            bot_api.Edit_Message_Reply_Markup(telegram_event.Callback_Query.Message.Chat.Id, telegram_event.Callback_Query.Message.Message_Id, text_count);
+            // bot_api.Delete_Message(telegram_event.Callback_Query.Message.Chat.Id, telegram_event.Callback_Query.Message.Message_Id);
         }
+
+        last_processed_event_id = telegram_event.Update_Id;
     }
 }
 //------------------------------------------------------------------------------------------------------------

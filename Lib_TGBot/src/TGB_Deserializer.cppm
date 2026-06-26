@@ -1,16 +1,16 @@
 //------------------------------------------------------------------------------------------------------------
 module;
 
-export module TGB_Parser;
+export module TGB_Deserializer;
 //------------------------------------------------------------------------------------------------------------
 import TGB_Data;
 //------------------------------------------------------------------------------------------------------------
-export class ATGB_Parser
+export class ATGB_Deserializer
 {
 public:
-    int Parse_Response_To_Message(const AString &response_text, SMessage &out_message);
-    int Parse_Updates(const AString &response_text, SUpdate &out_updates);
-    double Parse_NBU_USD_Rate(const AString &response_text, SExchange_Rate &exchange_rate) const;
+    void Deserialize_Event(const AString &response_text, STelegram_Event &telegram_event);
+    
+    void Deserialize_NBU_USD_Rate(const AString &response_text, SCurrency_Rate &currency_rate) const;
 
 private:
     void Print_Json(const AString &response_text) const;

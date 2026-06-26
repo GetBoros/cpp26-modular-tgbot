@@ -1,22 +1,20 @@
 //------------------------------------------------------------------------------------------------------------
 module;
 
-export module TGB_Network;
+export module TGB_Bot_API;
 //------------------------------------------------------------------------------------------------------------
 import TGB_Data;
 //------------------------------------------------------------------------------------------------------------
-export class ATGB_Network
+export class ATGB_Bot_API
 {
 public:
-    ~ATGB_Network();
-    ATGB_Network();
+    ~ATGB_Bot_API();
+    ATGB_Bot_API();
 
     void Initialize();
 
-    AString Get_Update_Response(int update_id) const;  // Get data from tg bot
+    void Poll_Events(int update_id, AString &response_result) const;  // Get data from tg bot
 
-    AString Get_NBU_USD_Rate() const;
-    
     void Send_Message(long long chat_id, long long message_thread_id, const char *text) const;
     void Send_Message_Reply(long long chat_id, long long message_thread_id, long long message_id, const char *text) const;
         
@@ -27,6 +25,8 @@ public:
     void Edit_Message_Reply_Markup(long long chat_id, long long message_id, const AString &markup_json_str);
 
     void Send_Game_Web_App(long long chat_id, const char *text, const char *url_str) const;
+
+    AString Get_NBU_USD_Rate() const;
 
 private:
     void Set_My_Commands() const;  // Set menu in bot private chat

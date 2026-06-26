@@ -69,7 +69,7 @@ export struct SCallback_Query
     SMessage Message;
 };
 //------------------------------------------------------------------------------------------------------------
-export struct SUpdate
+export struct STelegram_Event
 {
     long long Update_Id;
 
@@ -77,7 +77,7 @@ export struct SUpdate
     SCallback_Query Callback_Query;
 };
 //------------------------------------------------------------------------------------------------------------
-export struct SExchange_Rate
+export struct SCurrency_Rate
 {
     int R030;
     double Rate;

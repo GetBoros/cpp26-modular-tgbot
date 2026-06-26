@@ -33,15 +33,15 @@ target_sources(ALib_TGBot
   PUBLIC
     FILE_SET CXX_MODULES FILES  # Module interface
       src/Lib_TGBot.cppm
-      src/TGB_Parser.cppm
-      src/TGB_Network.cppm
+      src/TGB_Deserializer.cppm
+      src/TGB_Bot_API.cppm
       src/TGB_Manager.cppm
       src/TGB_Data.cppm
 
   PRIVATE  # Hiddent module realization
     src/Lib_TGBot.cpp
-    src/TGB_Parser.cpp
-    src/TGB_Network.cpp
+    src/TGB_Deserializer.cpp
+    src/TGB_Bot_API.cpp
     src/TGB_Manager.cpp
     src/TGB_Data.cpp
 )
