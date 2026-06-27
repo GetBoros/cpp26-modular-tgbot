@@ -30,8 +30,8 @@ public:
 
 private:
     void Set_My_Commands() const;  // Set menu in bot private chat
-    void Delete_My_Commands() const;  // Delete menu in bot private chat
-
+    void Delete_My_Commands() const;  // !!! can`t use ATemp Delete menu in bot private chat
+    
     struct SPimpl *Pimpl;
 
 };

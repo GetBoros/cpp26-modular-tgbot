@@ -11,7 +11,22 @@ module TGB_Bot_API;
 //------------------------------------------------------------------------------------------------------------
 struct SPimpl
 {
-    std::string Last_Response;
+    void Execute_Post_Request(cpr::Url url, const cpr::Payload payload)
+    {
+        constexpr int response_status_ok = 200;
+
+        cpr::Response response;
+
+        Response_Session.SetUrl(url);
+        Response_Session.SetPayload(payload);
+
+        // 1.2. Execute instant request over pre-established connection
+        response = Response_Session.Post();
+        if(response.status_code == response_status_ok)
+            std::println("Execute Post message sent successfully to chat: {}", response_status_ok);
+        else
+            std::println("Execute Post message send Failed Error: {}, Response: {}", response.status_code, response.text);
+    }
 
     std::string API_URL_GET_UPDATES;
     std::string API_URL_SEND_MESSAGE;
@@ -22,10 +37,14 @@ struct SPimpl
     std::string API_URL_SET_MY_COMMANDS;
     std::string API_URL_DELETE_MY_COMMANDS;
 
+    std::string Last_Response;
+    
     cpr::Session Polling_Session;
     cpr::Session Response_Session;
+
 };
 //------------------------------------------------------------------------------------------------------------
+
 
 
 
@@ -97,8 +116,6 @@ void ATGB_Bot_API::Send_Message(long long chat_id, long long message_thread_id, 
     std::vector<cpr::Pair> payload_fields;
     std::string url_method_str;
     cpr::Url url;
-    cpr::Response response;
-    constexpr int response_status_ok = 200;
     
     // 1.0. Initialize url and build payload fields
     url_method_str = Pimpl->API_URL_SEND_MESSAGE;  // Get API url for sending msg`s
@@ -115,15 +132,7 @@ void ATGB_Bot_API::Send_Message(long long chat_id, long long message_thread_id, 
 
     const cpr::Payload payload = cpr::Payload(payload_fields.begin(), payload_fields.end() );
 
-    Pimpl->Response_Session.SetUrl(url);
-    Pimpl->Response_Session.SetPayload(payload);
-
-    // 2.0. Execute API request, send POST request to Telegram API to send message and print logs
-    response = Pimpl->Response_Session.Post();
-    if (response.status_code == response_status_ok)
-        std::println("Message sent successfully to chat: {}", chat_id);
-    else
-        std::println("Failed to send message. Error: {}, Response: {}", response.status_code, response.text);
+    Pimpl->Execute_Post_Request(url, payload);
 }
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Bot_API::Send_Message_Reply(long long chat_id, long long message_thread_id, long long message_id, const char *text) const
@@ -133,8 +142,6 @@ void ATGB_Bot_API::Send_Message_Reply(long long chat_id, long long message_threa
     std::string reply_json_str;
     std::string keyboard_json_str;
     cpr::Url url;
-    cpr::Response response;
-    constexpr int response_status_ok = 200;
 
     // 1.0. Initialize url and build payload fields
     url_method_str = Pimpl->API_URL_SEND_MESSAGE;
@@ -180,25 +187,17 @@ void ATGB_Bot_API::Send_Message_Reply(long long chat_id, long long message_threa
     payload_fields.push_back({"reply_markup", std::move(keyboard_json_str) } );  // Attach keyboard to payload.
 
     const cpr::Payload payload = cpr::Payload(payload_fields.begin(), payload_fields.end() );
-        // 1.1. Apply options to response session
-    Pimpl->Response_Session.SetUrl(url);
-    Pimpl->Response_Session.SetPayload(payload);
 
-    // 2.0. Execute API request, send POST request to Telegram API to send message and print logs
-    response = Pimpl->Response_Session.Post();
-    if(response.status_code == response_status_ok)  // Output operation outcome details to logs
-        std::println("Message reply sent successfully to chat: {}", chat_id);
-    else
-        std::println("Failed to send reply. Error: {}, Response: {}", response.status_code, response.text);
+    Pimpl->Execute_Post_Request(url, payload);
 }
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Bot_API::Answer_Callback_Query(const AString &callback_query_id) const
 {
+    int cache_time_sec = 3600;
     std::string str_allert("Show allert example");
+    std::string deep_link_url("t.me/get_boros_cpp_bot?start=test_id_36");
     cpr::Url url;
     cpr::Parameters url_param;
-    cpr::Response response;
-    constexpr int response_status_ok = 200;
 
     // 1.0. Setup target and fast response parameters
     url = cpr::Url { Pimpl->API_URL_ANSWER_CALLBACK_QUERY };
@@ -210,19 +209,17 @@ void ATGB_Bot_API::Answer_Callback_Query(const AString &callback_query_id) const
     {
         {"callback_query_id", callback_query_id.Get_C_Str() },
         {"text", str_allert },
-        {"show_alert", "true"} 
+        {"cache_time", std::to_string(cache_time_sec) },
+        {"show_alert", "false"} 
+    };
+    const cpr::Payload payload_link = cpr::Payload
+    {
+        {"callback_query_id", callback_query_id.Get_C_Str() },
+        {"url", deep_link_url.c_str() }
     };
 
     // 1.1. Apply options to response session
-    Pimpl->Response_Session.SetUrl(url);
-    Pimpl->Response_Session.SetPayload(payload);
-
-    // 1.2. Execute instant request over pre-established connection
-    response = Pimpl->Response_Session.Post();
-    if(response.status_code == response_status_ok)  // Output operation outcome details to logs
-        std::println("Answer call back sent successfully to chat: {}", response.status_code);
-    else
-        std::println("Failed to send reply. Error: {}, Response: {}", response.status_code, response.text);
+    Pimpl->Execute_Post_Request(url, payload);
 }
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Bot_API::Delete_Message(long long chat_id, long long message_id)
@@ -245,13 +242,13 @@ void ATGB_Bot_API::Edit_Message_Text(long long chat_id, long long message_id, co
 {
     cpr::Url url = cpr::Url(Pimpl->API_URL_EDIT_MESSAGE_TEXT);
     const cpr::Payload payload = cpr::Payload
-    {
-        {"chat_id", std::to_string(chat_id)},
-        {"message_id", std::to_string(message_id)},
-        {"text", new_text_str.Get_C_Str()}
+     {
+        {"chat_id", std::to_string(chat_id) },
+        {"message_id", std::to_string(message_id) },
+        {"text", new_text_str.Get_C_Str() }
     };
 
-    cpr::Post(url, payload);
+    Pimpl->Execute_Post_Request(url, payload);
 }
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Bot_API::Edit_Message_Reply_Markup(long long chat_id, long long message_id, const AString &markup_json_str)
@@ -294,7 +291,7 @@ void ATGB_Bot_API::Edit_Message_Reply_Markup(long long chat_id, long long messag
         {"reply_markup", keyboard_json_str}
     };
 
-    cpr::Post(url, payload);
+    Pimpl->Execute_Post_Request(url, payload);
 }
 //------------------------------------------------------------------------------------------------------------
 AString ATGB_Bot_API::Get_NBU_USD_Rate() const
@@ -317,8 +314,6 @@ void ATGB_Bot_API::Set_My_Commands() const
 {
     std::string commands_json_str;
     cpr::Url url;
-    cpr::Response response;
-    constexpr int response_status_ok = 200;
 
     url = cpr::Url{Pimpl->API_URL_SET_MY_COMMANDS};
     commands_json_str =
@@ -332,11 +327,7 @@ void ATGB_Bot_API::Set_My_Commands() const
         {"commands", commands_json_str}
     };
 
-    response = cpr::Post(url, payload);
-    if(response.status_code == response_status_ok)
-        std::println("Menu commands successfully registered!");
-    else
-        std::println("Failed to register menu. Error: {}, Response: {}", response.status_code, response.text);
+    Pimpl->Execute_Post_Request(url, payload);
 }
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Bot_API::Delete_My_Commands() const
@@ -359,8 +350,6 @@ void ATGB_Bot_API::Send_Game_Web_App(long long chat_id, const char *text, const 
     std::string url_method_str;
     std::string keyboard_json_str;
     cpr::Url url;
-    cpr::Response response;
-    constexpr int response_status_ok = 200;
 
     // 1.0. Initialize method URL and target endpoint
     url_method_str = Pimpl->API_URL_SEND_MESSAGE;
@@ -382,14 +371,6 @@ void ATGB_Bot_API::Send_Game_Web_App(long long chat_id, const char *text, const 
         {"reply_markup", keyboard_json_str}
     };
 
-    Pimpl->Response_Session.SetUrl(url);
-    Pimpl->Response_Session.SetPayload(payload);
-
-    // 1.2. Execute instant request over pre-established connection
-    response = Pimpl->Response_Session.Post();
-    if(response.status_code == response_status_ok)
-        std::println("Web App message sent successfully to chat: {}", chat_id);
-    else
-        std::println("Failed to send Web App. Error: {}, Response: {}", response.status_code, response.text);
+    Pimpl->Execute_Post_Request(url, payload);
 }
 //------------------------------------------------------------------------------------------------------------
