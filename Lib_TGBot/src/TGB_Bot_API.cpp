@@ -4,6 +4,8 @@ module;
 #include <cpr/cpr.h>
 module TGB_Bot_API;
 //------------------------------------------------------------------------------------------------------------
+import TGB_Deserializer;
+//------------------------------------------------------------------------------------------------------------
 
 
 
@@ -11,7 +13,28 @@ module TGB_Bot_API;
 //------------------------------------------------------------------------------------------------------------
 struct SPimpl
 {
-    void Execute_Post_Request(cpr::Url url, const cpr::Payload payload)
+    void Initialize()
+    {
+        const char *env_token;
+        std::string bot_token;
+
+        // 1.0. Retrieve credentials from environment variables
+        env_token = std::getenv("TELEGRAM_BOT_TOKEN");
+        if(env_token != 0)
+            bot_token = env_token;
+
+        // 1.1. Construct Telegram Bot API endpoints
+        API_URL_GET_UPDATES = "https://api.telegram.org/bot" + bot_token + "/getUpdates";
+        API_URL_SEND_MESSAGE = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
+        API_URL_EDIT_MESSAGE_TEXT = "https://api.telegram.org/bot" + bot_token + "/editMessageText";
+        API_URL_EDIT_MESSAGE_REPLY_MARKUP = "https://api.telegram.org/bot" + bot_token + "/editMessageReplyMarkup";
+        API_URL_DELETE_MESSAGE = "https://api.telegram.org/bot" + bot_token + "/deleteMessage";
+        API_URL_ANSWER_CALLBACK_QUERY = "https://api.telegram.org/bot" + bot_token + "/answerCallbackQuery";
+        API_URL_SET_MY_COMMANDS = "https://api.telegram.org/bot" + bot_token + "/setMyCommands";
+        API_URL_DELETE_MY_COMMANDS = "https://api.telegram.org/bot" + bot_token + "/deleteMyCommands";
+    }
+
+    void Execute_Post_Request(cpr::Url url, const cpr::Payload &payload = cpr::Payload { } )
     {
         constexpr int response_status_ok = 200;
 
@@ -28,6 +51,8 @@ struct SPimpl
             std::println("Execute Post message send Failed Error: {}, Response: {}", response.status_code, response.text);
     }
 
+    int Lst_Processed_Event_Id;
+
     std::string API_URL_GET_UPDATES;
     std::string API_URL_SEND_MESSAGE;
     std::string API_URL_EDIT_MESSAGE_TEXT;
@@ -41,6 +66,8 @@ struct SPimpl
     
     cpr::Session Polling_Session;
     cpr::Session Response_Session;
+    
+    ATGB_Deserializer Deserializer;
 
 };
 //------------------------------------------------------------------------------------------------------------
@@ -60,43 +87,65 @@ ATGB_Bot_API::ATGB_Bot_API()
 {
     Pimpl = new SPimpl();
 
+    Pimpl->Initialize();
+    Pimpl->Polling_Session.SetUrl(cpr::Url{Pimpl->API_URL_GET_UPDATES} );
+
     Initialize();
 }
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Bot_API::Initialize()
 {
-    constexpr const int response_status_ok = 200;
-    const char *env_token = std::getenv("TELEGRAM_BOT_TOKEN");
-    std::string bot_token;
-    cpr::Url url;
-
-    bot_token = env_token;  // Set token here
-    Pimpl->API_URL_GET_UPDATES = "https://api.telegram.org/bot" + bot_token + "/getUpdates";
-    Pimpl->API_URL_SEND_MESSAGE = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
-    Pimpl->API_URL_EDIT_MESSAGE_TEXT = "https://api.telegram.org/bot" + bot_token + "/editMessageText";
-    Pimpl->API_URL_EDIT_MESSAGE_REPLY_MARKUP = "https://api.telegram.org/bot" + bot_token + "/editMessageReplyMarkup";
-    Pimpl->API_URL_DELETE_MESSAGE = "https://api.telegram.org/bot" + bot_token + "/deleteMessage";
-    Pimpl->API_URL_ANSWER_CALLBACK_QUERY = "https://api.telegram.org/bot" + bot_token + "/answerCallbackQuery";
-    Pimpl->API_URL_SET_MY_COMMANDS = "https://api.telegram.org/bot" + bot_token + "/setMyCommands";
-    Pimpl->API_URL_DELETE_MY_COMMANDS = "https://api.telegram.org/bot" + bot_token + "/deleteMyCommands";
-
-    url = cpr::Url { Pimpl->API_URL_GET_UPDATES };
-    Pimpl->Polling_Session.SetUrl(url);  // Init polling session
-
-    Set_My_Commands();
+    Set_My_Commands();  // Setup UI elements and menus on Telegram servers
 
     std::println("Bot started! Waiting for messages...");
 }
 //------------------------------------------------------------------------------------------------------------
+STelegram_Event ATGB_Bot_API::Poll_Events_Temp()
+{
+    int update_id;
+    AString response_text;
+    cpr::Parameters parameters;
+    cpr::Response response;
+    STelegram_Event telegram_event;
+    constexpr int response_status_ok = 200;
+
+    // 1.0. Configure request targets and parameters
+    update_id = Pimpl->Lst_Processed_Event_Id;
+    parameters = cpr::Parameters { {"timeout", "10"}, {"offset", std::to_string(update_id + 1) } };
+    Pimpl->Polling_Session.SetParameters(parameters); // Update session settings
+
+    // 1.1. Execute persistent request and update buffer in-place
+    response = Pimpl->Polling_Session.Get(); // Wait 10 seconds.
+    if(response.status_code == response_status_ok)
+    {
+        response_text = AString(response.text.c_str(), static_cast<long long>(response.text.size() ) );
+
+        Pimpl->Deserializer.Deserialize_Event(response_text, telegram_event);
+
+        // 1.2. Safeguard transaction ID to prevent zero-index reset loops
+        if(telegram_event.Update_Id > Pimpl->Lst_Processed_Event_Id)
+            Pimpl->Lst_Processed_Event_Id = telegram_event.Update_Id;
+
+        return telegram_event;
+    }
+    else
+    {
+        std::println("Network Error: {}", response.status_code);
+        std::this_thread::sleep_for(std::chrono::seconds(1) );
+    }
+
+    return telegram_event;
+}
+//------------------------------------------------------------------------------------------------------------
 void ATGB_Bot_API::Poll_Events(int update_id, AString &response_result) const
 {
-    cpr::Parameters update_param;
+    cpr::Parameters parameters;
     cpr::Response response;
     constexpr int response_status_ok = 200;
 
     // 1.0. Configure request targets and parameters
-    update_param = cpr::Parameters { {"timeout", "10"}, {"offset", std::to_string(update_id + 1) } };
-    Pimpl->Polling_Session.SetParameters(update_param);  // Update session settings
+    parameters = cpr::Parameters { {"timeout", "10"}, {"offset", std::to_string(update_id + 1) } };
+    Pimpl->Polling_Session.SetParameters(parameters);  // Update session settings
 
     // 1.1. Execute persistent request and update buffer in-place
     response = Pimpl->Polling_Session.Get();  // wait 10 second if not have new msgs
@@ -113,13 +162,11 @@ void ATGB_Bot_API::Poll_Events(int update_id, AString &response_result) const
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Bot_API::Send_Message(long long chat_id, long long message_thread_id, const char *text) const
 {
-    std::vector<cpr::Pair> payload_fields;
-    std::string url_method_str;
     cpr::Url url;
+    std::vector<cpr::Pair> payload_fields;
     
     // 1.0. Initialize url and build payload fields
-    url_method_str = Pimpl->API_URL_SEND_MESSAGE;  // Get API url for sending msg`s
-    url = cpr::Url { url_method_str };  // Build target url
+    url = cpr::Url{Pimpl->API_URL_SEND_MESSAGE};  // Build target url
     payload_fields =
     {
         {"chat_id", std::to_string(chat_id) },  // In field chat_id write chat_id
@@ -137,15 +184,13 @@ void ATGB_Bot_API::Send_Message(long long chat_id, long long message_thread_id, 
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Bot_API::Send_Message_Reply(long long chat_id, long long message_thread_id, long long message_id, const char *text) const
 {
+    cpr::Url url;
     std::vector<cpr::Pair> payload_fields;
-    std::string url_method_str;
     std::string reply_json_str;
     std::string keyboard_json_str;
-    cpr::Url url;
 
     // 1.0. Initialize url and build payload fields
-    url_method_str = Pimpl->API_URL_SEND_MESSAGE;
-    url = cpr::Url { url_method_str };
+    url = cpr::Url{Pimpl->API_URL_SEND_MESSAGE};
     payload_fields =
     {
         {"chat_id", std::to_string(chat_id) },
@@ -200,7 +245,7 @@ void ATGB_Bot_API::Answer_Callback_Query(const AString &callback_query_id) const
     cpr::Parameters url_param;
 
     // 1.0. Setup target and fast response parameters
-    url = cpr::Url { Pimpl->API_URL_ANSWER_CALLBACK_QUERY };
+    url = cpr::Url{ Pimpl->API_URL_ANSWER_CALLBACK_QUERY };
     const cpr::Payload payload = cpr::Payload
     {
         {"callback_query_id", callback_query_id.Get_C_Str() }
@@ -227,15 +272,11 @@ void ATGB_Bot_API::Delete_Message(long long chat_id, long long message_id)
     cpr::Url url = cpr::Url(Pimpl->API_URL_DELETE_MESSAGE);
     const cpr::Payload payload = cpr::Payload
     {
-        {"chat_id", std::to_string(chat_id)},
-        {"message_id", std::to_string(message_id)}
+        {"chat_id", std::to_string(chat_id) },
+        {"message_id", std::to_string(message_id) }
     };
 
-    Pimpl->Response_Session.SetUrl(url);
-    Pimpl->Response_Session.SetPayload(payload);
-    Pimpl->Response_Session.Post();
-
-    std::println("Bot message was deleted");
+    Pimpl->Execute_Post_Request(url, payload);
 }
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Bot_API::Edit_Message_Text(long long chat_id, long long message_id, const AString &new_text_str)
@@ -305,7 +346,7 @@ AString ATGB_Bot_API::Get_NBU_USD_Rate() const
 
     response = cpr::Get(url);  // Execute standard GET request
     if(response.status_code == response_status_ok)
-        return AString(response.text.c_str(), static_cast<long long>(response.text.size()));
+        return AString(response.text.c_str(), static_cast<long long>(response.text.size() ) );
 
     return AString();
 }
@@ -332,17 +373,9 @@ void ATGB_Bot_API::Set_My_Commands() const
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Bot_API::Delete_My_Commands() const
 {
-    cpr::Url url;
-    cpr::Response response;
-    constexpr int response_status_ok = 200;
+    cpr::Url url = cpr::Url{ Pimpl->API_URL_DELETE_MY_COMMANDS };
 
-    url = cpr::Url { Pimpl->API_URL_DELETE_MY_COMMANDS };
-
-    response = cpr::Post(url);
-    if(response.status_code == response_status_ok)
-        std::println("Menu commands successfully deleted from Telegram servers.");
-    else
-        std::println("Failed to delete menu. Error: {}", response.status_code);
+    Pimpl->Execute_Post_Request(url);
 }
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Bot_API::Send_Game_Web_App(long long chat_id, const char *text, const char *url_str) const
@@ -353,7 +386,7 @@ void ATGB_Bot_API::Send_Game_Web_App(long long chat_id, const char *text, const 
 
     // 1.0. Initialize method URL and target endpoint
     url_method_str = Pimpl->API_URL_SEND_MESSAGE;
-    url = cpr::Url { url_method_str };
+    url = cpr::Url{ url_method_str };
 
     // 1.1. Build inline keyboard payload with Phaser game link as Web App
     keyboard_json_str = R"({

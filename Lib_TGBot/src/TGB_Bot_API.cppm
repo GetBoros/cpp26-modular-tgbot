@@ -13,6 +13,7 @@ public:
 
     void Initialize();
 
+    STelegram_Event Poll_Events_Temp();  // Get data from tg bot
     void Poll_Events(int update_id, AString &response_result) const;  // Get data from tg bot
 
     void Send_Message(long long chat_id, long long message_thread_id, const char *text) const;
