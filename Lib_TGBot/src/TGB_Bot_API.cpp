@@ -89,7 +89,7 @@ ATGB_Bot_API::ATGB_Bot_API()
 
     Pimpl->Initialize();
     Pimpl->Polling_Session.SetUrl(cpr::Url{Pimpl->API_URL_GET_UPDATES} );
-
+    
     Initialize();
 }
 //------------------------------------------------------------------------------------------------------------

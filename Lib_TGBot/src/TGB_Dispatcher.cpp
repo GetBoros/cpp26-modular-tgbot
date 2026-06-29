@@ -1,49 +1,37 @@
 //------------------------------------------------------------------------------------------------------------
 module;
 
-module TGB_Manager;
+module TGB_Dispatcher;
 //------------------------------------------------------------------------------------------------------------
+import std;
 import TGB_Data;
-import TGB_Deserializer;
 //------------------------------------------------------------------------------------------------------------
 
 
 
 
-// ATGB_Manager
-ATGB_Manager::ATGB_Manager()
+// ATGB_Dispatcher
+ATGB_Dispatcher::ATGB_Dispatcher()
 {
 
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Manager::Initialize()
+void ATGB_Dispatcher::Initialize()
 {
-    bool is_running;
-
-    // 1.0. Execute the main event dispatcher loop
-    is_running = true;
-    do
+    while(true)
     {
         Tick();
-    } 
-    while(is_running == true);  // if no connection or else problem - quit
+    }
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Manager::Tick()
+void ATGB_Dispatcher::Tick()
 {
     STelegram_Event telegram_event;
 
-    // 1.0.
     telegram_event = Bot_API.Poll_Events_Temp();  // Not async wait connect 10 sec
-    // Bot_API.Poll_Events(Lst_Processed_Event_Id, Response);  // Not async wait connect 10 sec
-
-    // Deserializer.Deserialize_Event(Response, telegram_event);  // deserialize Response to tg event struct
 
     if(telegram_event.Message.Message_Id != 0)
-        std::println("Text {} ", telegram_event.Message.Text.Get_C_Str() );
-
-
-    // Lst_Processed_Event_Id = telegram_event.Update_Id;  // ready to get new msg, callback.
+        Bot_API.Send_Game_Web_App(telegram_event.Message.Chat.Id, "Game", "https://getboros.github.io/oni-pipeline-sim/");
 
     // !!! 1.0 TEST
     // if(telegram_event.Message.Message_Id != 0)  // !!! Example reply
@@ -61,7 +49,7 @@ void ATGB_Manager::Tick()
     // }
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Manager::Send_NBU_USD_Rate()
+void ATGB_Dispatcher::Send_NBU_USD_Rate()
 {
     // double usd;
     // std::string formatted_rate_msg;

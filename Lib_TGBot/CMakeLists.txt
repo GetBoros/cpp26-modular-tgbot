@@ -35,14 +35,14 @@ target_sources(ALib_TGBot
       src/Lib_TGBot.cppm
       src/TGB_Deserializer.cppm
       src/TGB_Bot_API.cppm
-      src/TGB_Manager.cppm
+      src/TGB_Dispatcher.cppm
       src/TGB_Data.cppm
 
   PRIVATE  # Hiddent module realization
     src/Lib_TGBot.cpp
     src/TGB_Deserializer.cpp
     src/TGB_Bot_API.cpp
-    src/TGB_Manager.cpp
+    src/TGB_Dispatcher.cpp
     src/TGB_Data.cpp
 )
 #-------------------------------------------------------------------------------------------------------------
