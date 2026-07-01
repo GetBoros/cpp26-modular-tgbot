@@ -31,7 +31,7 @@ void ATGB_Dispatcher::Tick()
     telegram_event = Bot_API.Poll_Events_Temp();  // Not async wait connect 10 sec
 
     if(telegram_event.Message.Message_Id != 0)
-        Bot_API.Send_Game_Web_App(telegram_event.Message.Chat.Id, "Game", "https://getboros.github.io/oni-pipeline-sim/");
+        Bot_API.Send_Game_Web_App(telegram_event.Message.Chat.Id, telegram_event.Message.Message_Thread_Id, "Game", "https://getboros.github.io/oni-pipeline-sim/");
 
     // !!! 1.0 TEST
     // if(telegram_event.Message.Message_Id != 0)  // !!! Example reply

@@ -137,29 +137,6 @@ STelegram_Event ATGB_Bot_API::Poll_Events_Temp()
     return telegram_event;
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Bot_API::Poll_Events(int update_id, AString &response_result) const
-{
-    cpr::Parameters parameters;
-    cpr::Response response;
-    constexpr int response_status_ok = 200;
-
-    // 1.0. Configure request targets and parameters
-    parameters = cpr::Parameters { {"timeout", "10"}, {"offset", std::to_string(update_id + 1) } };
-    Pimpl->Polling_Session.SetParameters(parameters);  // Update session settings
-
-    // 1.1. Execute persistent request and update buffer in-place
-    response = Pimpl->Polling_Session.Get();  // wait 10 second if not have new msgs
-    if(response.status_code == response_status_ok)
-        response_result.Assign(response.text.c_str(), static_cast<long long>(response.text.size() ) );
-    else
-    {
-        response_result.Clear();
-
-        std::println("Network Error: {}", response.status_code);
-        std::this_thread::sleep_for(std::chrono::seconds(1) );
-    }
-}
-//------------------------------------------------------------------------------------------------------------
 void ATGB_Bot_API::Send_Message(long long chat_id, long long message_thread_id, const char *text) const
 {
     cpr::Url url;
@@ -217,7 +194,7 @@ void ATGB_Bot_API::Send_Message_Reply(long long chat_id, long long message_threa
     //         [{"text": "Help", "callback_data": "action_help"}],
     //         [{"text": "Exit", "callback_data": "action_exit"}]
     //     ]
-    // })";
+    // })";  // vertical
     // payload_fields.push_back({"reply_markup", std::move(keyboard_json_str) } );  // Attach keyboard to payload.
     keyboard_json_str = R"({
         "inline_keyboard": [
@@ -228,10 +205,40 @@ void ATGB_Bot_API::Send_Message_Reply(long long chat_id, long long message_threa
                 {"text": "Exit", "callback_data": "action_exit"}
             ]
         ]
-    })";
+    })";  // horizontal
     payload_fields.push_back({"reply_markup", std::move(keyboard_json_str) } );  // Attach keyboard to payload.
 
     const cpr::Payload payload = cpr::Payload(payload_fields.begin(), payload_fields.end() );
+
+    Pimpl->Execute_Post_Request(url, payload);
+}
+//------------------------------------------------------------------------------------------------------------
+void ATGB_Bot_API::Send_Game_Web_App(long long chat_id, long long message_thread_id, const char *text, const char *url_str) const
+{
+    std::string url_method_str;
+    std::string keyboard_json_str;
+    cpr::Url url;
+
+    // 1.0. Initialize method URL and target endpoint
+    url_method_str = Pimpl->API_URL_SEND_MESSAGE;
+    url = cpr::Url{ url_method_str };
+
+    // 1.1. Build inline keyboard payload with Phaser game link as Web App
+    keyboard_json_str = R"({
+        "inline_keyboard": [
+            [
+                {"text": "Game Name, "web_app": {"url": ")" + std::string(url_str) + R"("}}
+            ]
+        ]
+    })";
+
+    const cpr::Payload payload = cpr::Payload
+    {
+        {"text", text},
+        {"reply_markup", keyboard_json_str},
+        {"chat_id", std::to_string(chat_id) },
+        {"message_thread_id", std::to_string(message_thread_id) }
+    };
 
     Pimpl->Execute_Post_Request(url, payload);
 }
@@ -264,18 +271,6 @@ void ATGB_Bot_API::Answer_Callback_Query(const AString &callback_query_id) const
     };
 
     // 1.1. Apply options to response session
-    Pimpl->Execute_Post_Request(url, payload);
-}
-//------------------------------------------------------------------------------------------------------------
-void ATGB_Bot_API::Delete_Message(long long chat_id, long long message_id)
-{
-    cpr::Url url = cpr::Url(Pimpl->API_URL_DELETE_MESSAGE);
-    const cpr::Payload payload = cpr::Payload
-    {
-        {"chat_id", std::to_string(chat_id) },
-        {"message_id", std::to_string(message_id) }
-    };
-
     Pimpl->Execute_Post_Request(url, payload);
 }
 //------------------------------------------------------------------------------------------------------------
@@ -335,6 +330,18 @@ void ATGB_Bot_API::Edit_Message_Reply_Markup(long long chat_id, long long messag
     Pimpl->Execute_Post_Request(url, payload);
 }
 //------------------------------------------------------------------------------------------------------------
+void ATGB_Bot_API::Delete_Message(long long chat_id, long long message_id)
+{
+    cpr::Url url = cpr::Url(Pimpl->API_URL_DELETE_MESSAGE);
+    const cpr::Payload payload = cpr::Payload
+    {
+        {"chat_id", std::to_string(chat_id) },
+        {"message_id", std::to_string(message_id) }
+    };
+
+    Pimpl->Execute_Post_Request(url, payload);
+}
+//------------------------------------------------------------------------------------------------------------
 AString ATGB_Bot_API::Get_NBU_USD_Rate() const
 {
     cpr::Url url;
@@ -353,15 +360,15 @@ AString ATGB_Bot_API::Get_NBU_USD_Rate() const
 //------------------------------------------------------------------------------------------------------------
 void ATGB_Bot_API::Set_My_Commands() const
 {
-    std::string commands_json_str;
     cpr::Url url;
+    std::string commands_json_str;
 
     url = cpr::Url{Pimpl->API_URL_SET_MY_COMMANDS};
     commands_json_str =
     R"([
         {"command": "enter", "description": "In progress"},
         {"command": "games", "description": "Show games"},
-        {"command": "settings", "description": "In progress"}
+        {"command": "exit", "description": "In progress"}
     ])";
     const cpr::Payload payload = cpr::Payload
     {
@@ -376,34 +383,5 @@ void ATGB_Bot_API::Delete_My_Commands() const
     cpr::Url url = cpr::Url{ Pimpl->API_URL_DELETE_MY_COMMANDS };
 
     Pimpl->Execute_Post_Request(url);
-}
-//------------------------------------------------------------------------------------------------------------
-void ATGB_Bot_API::Send_Game_Web_App(long long chat_id, const char *text, const char *url_str) const
-{
-    std::string url_method_str;
-    std::string keyboard_json_str;
-    cpr::Url url;
-
-    // 1.0. Initialize method URL and target endpoint
-    url_method_str = Pimpl->API_URL_SEND_MESSAGE;
-    url = cpr::Url{ url_method_str };
-
-    // 1.1. Build inline keyboard payload with Phaser game link as Web App
-    keyboard_json_str = R"({
-        "inline_keyboard": [
-            [
-                {"text": "Play Phaser Game", "web_app": {"url": ")" + std::string(url_str) + R"("}}
-            ]
-        ]
-    })";
-
-    const cpr::Payload payload = cpr::Payload
-    {
-        {"chat_id", std::to_string(chat_id)},
-        {"text", text},
-        {"reply_markup", keyboard_json_str}
-    };
-
-    Pimpl->Execute_Post_Request(url, payload);
 }
 //------------------------------------------------------------------------------------------------------------
