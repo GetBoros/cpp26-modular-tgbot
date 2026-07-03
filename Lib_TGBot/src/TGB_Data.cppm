@@ -44,6 +44,11 @@ export struct SChat
     
 };
 //------------------------------------------------------------------------------------------------------------
+export struct SReply_Markup
+{
+    AString Inline_Keyboard;
+};
+//------------------------------------------------------------------------------------------------------------
 export struct SUser_Info
 {
     bool Is_Bot;
@@ -55,6 +60,12 @@ export struct SUser_Info
 
 };
 //------------------------------------------------------------------------------------------------------------
+export struct SEntities
+{
+    AString Type;
+    
+};
+//------------------------------------------------------------------------------------------------------------
 export struct SMessage
 {
     bool Is_Topic_Message;
@@ -64,6 +75,8 @@ export struct SMessage
     AString Text;
     SUser_Info From;
     SChat Chat;
+    SReply_Markup Reply_Markup;
+    SEntities Entities;
 
 };
 //------------------------------------------------------------------------------------------------------------

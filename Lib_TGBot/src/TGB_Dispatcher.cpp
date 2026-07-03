@@ -24,14 +24,15 @@ void ATGB_Dispatcher::Initialize()
     }
 }
 //------------------------------------------------------------------------------------------------------------
-void ATGB_Dispatcher::Tick()
+void ATGB_Dispatcher::Tick()  // 0956308548
 {
+    bool is_keyboard_empty = false;
     STelegram_Event telegram_event;
-
+    
     telegram_event = Bot_API.Poll_Events_Temp();  // Not async wait connect 10 sec
 
-    if(telegram_event.Message.Message_Id != 0)
-        Bot_API.Send_Game_Web_App(telegram_event.Message.Chat.Id, telegram_event.Message.Message_Thread_Id, "Game", "https://getboros.github.io/oni-pipeline-sim/");
+    // if(telegram_event.Message.Message_Id != 0)
+        // Bot_API.Send_Game_Web_App(telegram_event.Message.Chat.Id, telegram_event.Message.Message_Thread_Id, "Game", "https://getboros.github.io/oni-pipeline-sim/");
 
     // !!! 1.0 TEST
     // if(telegram_event.Message.Message_Id != 0)  // !!! Example reply

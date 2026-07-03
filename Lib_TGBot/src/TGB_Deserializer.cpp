@@ -78,6 +78,7 @@ void ATGB_Deserializer::Deserialize_Event(const AString &response, STelegram_Eve
     try  // Parse raw string into JSON object.
     {
         nlohmann::json json_data = nlohmann::json::parse(response.Get_C_Str() );
+        Print_Json(response);
 
         for(auto const &item : json_data["result"])  // Iterate through all received updates.
             Deserialize_Json(telegram_event, item);  // use reflection to parse entire object
@@ -238,6 +239,69 @@ Received JSON:
                 }
             },
             "update_id": 875409095
+        }
+    ]
+}
+*/
+//------------------------------------------------------------------------------------------------------------
+/*
+Received JSON:
+{
+    "ok": true,
+    "result": [
+        {
+            "message": {
+                "chat": {
+                    "first_name": "Andrey",
+                    "id": 1775156303,
+                    "type": "private",
+                    "username": "GetBoros"
+                },
+                "date": 1782930153,
+                "entities": [
+                    {
+                        "length": 6,
+                        "offset": 0,
+                        "type": "bot_command"
+                    }
+                ],
+                "from": {
+                    "first_name": "Andrey",
+                    "id": 1775156303,
+                    "is_bot": false,
+                    "language_code": "en",
+                    "username": "GetBoros"
+                },
+                "is_topic_message": true,
+                "message_id": 130,
+                "message_thread_id": 11228,
+                "reply_to_message": {
+                    "chat": {
+                        "first_name": "Andrey",
+                        "id": 1775156303,
+                        "type": "private",
+                        "username": "GetBoros"
+                    },
+                    "date": 1782561373,
+                    "forum_topic_created": {
+                        "icon_color": 7322096,
+                        "is_name_implicit": true,
+                        "name": "Main"
+                    },
+                    "from": {
+                        "first_name": "Andrey",
+                        "id": 1775156303,
+                        "is_bot": false,
+                        "language_code": "en",
+                        "username": "GetBoros"
+                    },
+                    "is_topic_message": true,
+                    "message_id": 92,
+                    "message_thread_id": 11228
+                },
+                "text": "/enter"
+            },
+            "update_id": 875409296
         }
     ]
 }
