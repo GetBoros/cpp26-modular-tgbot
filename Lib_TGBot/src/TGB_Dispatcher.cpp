@@ -36,7 +36,7 @@ void ATGB_Dispatcher::Tick()  // 0956308548
 
     // !!! 1.0 TEST
     // if(telegram_event.Message.Message_Id != 0)  // !!! Example reply
-        // Bot_API.Send_Message_Reply(telegram_event.Message.Chat.Id, telegram_event.Message.Message_Thread_Id, telegram_event.Message.Message_Id, formatted_rate_msg.c_str() );
+    //     Bot_API.Send_Message_Reply(telegram_event.Message.Chat.Id, telegram_event.Message.Message_Thread_Id, telegram_event.Message.Message_Id, "Hi");
 
     // // !!! 2.0. TEST
     // if(telegram_event.Callback_Query.Id.Get_Size() > 0)

@@ -78,8 +78,7 @@ void ATGB_Deserializer::Deserialize_Event(const AString &response, STelegram_Eve
     try  // Parse raw string into JSON object.
     {
         nlohmann::json json_data = nlohmann::json::parse(response.Get_C_Str() );
-        Print_Json(response);
-
+        
         for(auto const &item : json_data["result"])  // Iterate through all received updates.
             Deserialize_Json(telegram_event, item);  // use reflection to parse entire object
     }

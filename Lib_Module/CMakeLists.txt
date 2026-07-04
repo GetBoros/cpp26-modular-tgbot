@@ -7,12 +7,14 @@ target_sources(ALib_Module
     FILE_SET CXX_MODULES FILES  # Module interface
       src/Module_Math.cppm
       src/Lib_Module.cppm
+      src/Example_Reflection.cppm
       src/Lib_Module_Concepts.cppm
       src/Lib_Module_Reflection.cppm
 
   PRIVATE
     src/Module_Math.cpp  # Hiddent module realization
     src/Lib_Module.cpp
+    src/Example_Reflection.cpp
     src/Lib_Module_Concepts.cpp
     src/Lib_Module_Reflection.cpp
 )
