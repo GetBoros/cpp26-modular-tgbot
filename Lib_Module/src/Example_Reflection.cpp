@@ -2,6 +2,7 @@
 module;
 #include <meta>
 #include <print>
+#include <ranges>
 module Example_Reflection;
 //------------------------------------------------------------------------------------------------------------
 // import std;
@@ -22,8 +23,13 @@ template<typename type_name> void TExample_Reflection(const type_name &object, i
     constexpr std::meta::info object_info = ^^std::remove_cvref_t<type_name>;
     constexpr std::meta::access_context access_ctx = std::meta::access_context::unchecked();
 
+    auto lambda = [](std::meta::info info)
+    {
+        return std::meta::is_function(info) && std::meta::has_identifier(info);
+    };
+
     static constexpr auto fields_data = std::define_static_array(std::meta::nonstatic_data_members_of(object_info, access_ctx) );
-    static constexpr auto fields_func = std::define_static_array(std::meta::members_of(object_info, access_ctx) );
+    static constexpr auto fields_func = std::define_static_array(std::meta::members_of(object_info, access_ctx) | std::views::filter(lambda) );
 
     template for(constexpr auto field_data : fields_data)
     {
@@ -34,15 +40,9 @@ template<typename type_name> void TExample_Reflection(const type_name &object, i
 
     template for(constexpr auto field_func : fields_func)
     {
-        constexpr auto is_identifier = std::meta::has_identifier(field_func);
+        constexpr auto field_func_name = std::meta::identifier_of(field_func);  // Caching member name
 
-        if constexpr (is_identifier)
-        {
-            constexpr auto field_func_name = std::meta::identifier_of(field_func);  // Caching member name
-
-            std::println("Field func name: {}. ", field_func_name);
-
-        }
+        std::println("Field func name: {}. ", field_func_name);
     }
  
 }
