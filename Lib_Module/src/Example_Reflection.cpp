@@ -44,7 +44,9 @@ template<typename type_name> void TExample_Reflection(const type_name &object, i
 
         std::println("Field func name: {}. ", field_func_name);
     }
- 
+    // Add example AoS and Soa convert AoS to SoA 
+    // Generate cpp type from json
+    // Named tuple - create struct with named fields in compile time
 }
 //------------------------------------------------------------------------------------------------------------
 
