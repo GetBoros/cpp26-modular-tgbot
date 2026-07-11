@@ -25,7 +25,7 @@ template<typename type_name> void TExample_Reflection(const type_name &object, i
 
     auto lambda = [](std::meta::info info)
     {
-        return std::meta::is_function(info) && std::meta::has_identifier(info);
+        return std::meta::is_function(info) && std::meta::has_identifier(info);  // is func and has name
     };
 
     static constexpr auto fields_data = std::define_static_array(std::meta::nonstatic_data_members_of(object_info, access_ctx) );
@@ -57,6 +57,7 @@ template<typename type_name> void TExample_Reflection(const type_name &object, i
 void AExample_Reflection::Init()
 {
     AObject object;
+    
     TExample_Reflection(object, 5);
 }
 //------------------------------------------------------------------------------------------------------------
