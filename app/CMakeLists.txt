@@ -12,6 +12,13 @@ target_sources(AApplication
             src/Test.cppm
 )
 #-------------------------------------------------------------------------------------------------------------
+set_target_properties(AApplication PROPERTIES
+    CXX_STANDARD 26
+    CXX_STANDARD_REQUIRED ON
+    CXX_SCAN_FOR_MODULES ON
+    CXX_MODULE_STD ON
+)
+#-------------------------------------------------------------------------------------------------------------
 target_link_libraries(AApplication PRIVATE
     ALib_Clicker
     ALib_Module

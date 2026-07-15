@@ -5,17 +5,16 @@ include(FetchContent)
 
 set(CPR_CURL_USE_LIBPSL OFF CACHE BOOL "" FORCE)  # Disable don`t need for now 
 
-set(PARENT_CXX_STANDARD ${CMAKE_CXX_STANDARD})  # Save global standart cpr need std 17 or errors
+set(PARENT_CXX_STANDARD ${CMAKE_CXX_STANDARD})  # Save global standard; CPR needs std 17 or errors
 set(PARENT_CXX_STANDARD_REQUIRED ${CMAKE_CXX_STANDARD_REQUIRED})
 
-set(CMAKE_CXX_STANDARD 17)  # Reset global std to 17 CPR and JSON use 11 or 17 std
+set(CMAKE_CXX_STANDARD 17)  # Reset global std to 17; CPR and JSON use 11 or 17 std
 set(CMAKE_CXX_STANDARD_REQUIRED OFF)
 
 FetchContent_Declare(cpr
     GIT_REPOSITORY https://github.com/libcpr/cpr.git
     GIT_TAG 1.14.0  # Use verified version
 )
-
 FetchContent_MakeAvailable(cpr)
 
 FetchContent_Declare(json
@@ -38,12 +37,20 @@ target_sources(ALib_TGBot
       src/TGB_Dispatcher.cppm
       src/TGB_Data.cppm
 
-  PRIVATE  # Hiddent module realization
+  PRIVATE  # Hidden module realization
     src/Lib_TGBot.cpp
     src/TGB_Deserializer.cpp
     src/TGB_Bot_API.cpp
     src/TGB_Dispatcher.cpp
     src/TGB_Data.cpp
+)
+#-------------------------------------------------------------------------------------------------------------
+# 1.0. Explicitly enable C++26 modules and standard library import only for ALib_TGBot
+set_target_properties(ALib_TGBot PROPERTIES
+    CXX_STANDARD 26
+    CXX_STANDARD_REQUIRED ON
+    CXX_SCAN_FOR_MODULES ON
+    CXX_MODULE_STD ON
 )
 #-------------------------------------------------------------------------------------------------------------
 target_compile_options(ALib_TGBot

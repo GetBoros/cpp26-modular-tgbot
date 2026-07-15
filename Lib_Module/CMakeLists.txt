@@ -19,5 +19,13 @@ target_sources(ALib_Module
     src/Lib_Module_Reflection.cpp
 )
 #-------------------------------------------------------------------------------------------------------------
+# 1.0. Explicitly enable C++26 modules and standard library import for ALib_Module
+set_target_properties(ALib_Module PROPERTIES
+    CXX_STANDARD 26
+    CXX_STANDARD_REQUIRED ON
+    CXX_SCAN_FOR_MODULES ON
+    CXX_MODULE_STD ON
+)
+#-------------------------------------------------------------------------------------------------------------
 target_compile_options(ALib_Module PRIVATE -freflection)  # add #include <meta>
 #-------------------------------------------------------------------------------------------------------------
