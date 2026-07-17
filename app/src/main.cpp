@@ -20,7 +20,9 @@ void Temp()
     static_assert(example_constexpr.Example_Constexpr_Info() == 20);
 
     if (example_constexpr_runtime.Example_Constexpr_Info() == 20)
-        return;
+        {
+            return;
+        }
     
 }
 //------------------------------------------------------------------------------------------------------------
