@@ -2,7 +2,7 @@
 #include <main.h>
 //------------------------------------------------------------------------------------------------------------
 import Lib_Module;
-// import Lib_TGBot;
+import Lib_TGBot;
 // import Lib_Clicker;
 //------------------------------------------------------------------------------------------------------------
 
@@ -14,14 +14,14 @@ import Lib_Module;
 void Temp()
 {
     constexpr AExample_Constexpr example_constexpr(10);
+    
     AExample_Constexpr example_constexpr_runtime(10);
 
     static_assert(example_constexpr.Constexpr_Value == 10);
     static_assert(example_constexpr.Example_Constexpr_Info() == 20);
 
     if (example_constexpr_runtime.Example_Constexpr_Info() == 20)
-        return;
-    
+            return;
 }
 //------------------------------------------------------------------------------------------------------------
 

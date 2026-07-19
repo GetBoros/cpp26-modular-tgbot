@@ -15,5 +15,12 @@ target_sources(ALib_Clicker
         src/Clicker.cpp
 )
 #-------------------------------------------------------------------------------------------------------------
+set_target_properties(ALib_Clicker PROPERTIES
+    CXX_STANDARD 26
+    CXX_STANDARD_REQUIRED ON
+    CXX_SCAN_FOR_MODULES ON
+    CXX_MODULE_STD ON
+)
+#-------------------------------------------------------------------------------------------------------------
 # target_compile_options(ALib_Clicker PRIVATE -freflection)  # #include <meta>
 #-------------------------------------------------------------------------------------------------------------
