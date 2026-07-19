@@ -14,6 +14,7 @@ import Lib_TGBot;
 void Temp()
 {
     constexpr AExample_Constexpr example_constexpr(10);
+    
     AExample_Constexpr example_constexpr_runtime(10);
 
     static_assert(example_constexpr.Constexpr_Value == 10);
