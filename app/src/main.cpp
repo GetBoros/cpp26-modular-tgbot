@@ -13,7 +13,7 @@ import Lib_TGBot;
 //------------------------------------------------------------------------------------------------------------
 void Temp()
 {
-    constexpr AExample_Constexpr example_constexpr(10);
+    constexpr AExample_Constexpr example_constexpr(10);  // Help
     
     AExample_Constexpr example_constexpr_runtime(10);
 
