@@ -18,7 +18,7 @@ void Temp()
     AExample_Constexpr example_constexpr_runtime(10);
 
     static_assert(example_constexpr.Constexpr_Value == 10);  // check
-    static_assert(example_constexpr.Example_Constexpr_Info() == 20);
+    static_assert(example_constexpr.Example_Constexpr_Info() == 20);  // check second
 
     if (example_constexpr_runtime.Example_Constexpr_Info() == 20)
             return;
