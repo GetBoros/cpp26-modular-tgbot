@@ -22,7 +22,7 @@ void Temp()
     static_assert(example_constexpr.Example_Constexpr_Info() == 20);  // check second
 
     if (example_constexpr_runtime.Example_Constexpr_Info() == 20)  // result
-            return;  // Done today test
+            return;  // Done today test almost
             
 }
 //------------------------------------------------------------------------------------------------------------
