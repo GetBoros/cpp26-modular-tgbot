@@ -3,7 +3,7 @@
 //------------------------------------------------------------------------------------------------------------
 import Lib_Module;
 import Lib_TGBot;
-// import Lib_Clicker;
+import Lib_Clicker;
 //------------------------------------------------------------------------------------------------------------
 
 
@@ -13,15 +13,17 @@ import Lib_TGBot;
 //------------------------------------------------------------------------------------------------------------
 void Temp()
 {
-    constexpr AExample_Constexpr example_constexpr(10);
+    constexpr int value = 10;
+    constexpr AExample_Constexpr example_constexpr(value);  // Help
     
-    AExample_Constexpr example_constexpr_runtime(10);
+    AExample_Constexpr example_constexpr_runtime(value);  // temp
 
-    static_assert(example_constexpr.Constexpr_Value == 10);
-    static_assert(example_constexpr.Example_Constexpr_Info() == 20);
+    static_assert(example_constexpr.Constexpr_Value == value);  // check
+    static_assert(example_constexpr.Example_Constexpr_Info() == 20);  // check second
 
-    if (example_constexpr_runtime.Example_Constexpr_Info() == 20)
-            return;
+    if (example_constexpr_runtime.Example_Constexpr_Info() == 20)  // result
+            return;  // Done today test almost final
+            
 }
 //------------------------------------------------------------------------------------------------------------
 
