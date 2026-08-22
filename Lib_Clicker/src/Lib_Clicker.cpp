@@ -16,7 +16,7 @@ void Handle_Clicker()
     bool is_clicker;
     AClicker clicker;
 
-    is_clicker = true;
+    is_clicker = false;
 
     clicker.Init(is_clicker);
 }

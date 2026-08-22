@@ -58,7 +58,11 @@ public:
     void Init(bool is_clicker = false);
 
     bool Is_Mouse_With_Wheel(int fd);
+    bool Is_Keyboard(int fd);
     void Hold_Mouse(int uinput_fd, bool is_press, bool is_quiet = false);
     int Create_Virtual_Mouse();
+
+private:
+    int Clicker_Delay_MS = 500;  // ms 50ms base
 };
 //------------------------------------------------------------------------------------------------------------

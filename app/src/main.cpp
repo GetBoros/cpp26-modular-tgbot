@@ -33,9 +33,9 @@ void Temp()
 //------------------------------------------------------------------------------------------------------------
 int main()
 {
-    // Handle_Clicker();
+    Handle_Clicker();
     // Handle_TGBot();  // Bot for shop
-    Handle_Module();  // Bot for shop
+    // Handle_Module();  // Bot for shop
     
     return 0;
 }
