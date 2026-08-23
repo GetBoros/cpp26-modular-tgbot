@@ -11,7 +11,7 @@ import std;
 //------------------------------------------------------------------------------------------------------------
 
 // AClicker
-void AClicker::Init(bool is_clicker)
+void AClicker::Init(bool is_clicker, const int clicker_delay)
 {
     // 1.0. Declaration of variables
     bool is_lmb_held = false;                                                  // 1 byte
@@ -28,6 +28,7 @@ void AClicker::Init(bool is_clicker)
     char name[256] = {0};                                                      // 256 bytes (character array)
 
     // 1.1. Initialize virtual mouse device
+    Clicker_Delay_MS = clicker_delay;
     uinput_fd = UniqueFd{Create_Virtual_Mouse()};
 
     if(uinput_fd.Is_Valid() != true)
@@ -346,7 +347,7 @@ int AClicker::Create_Virtual_Mouse()
     write(fd, &uud, sizeof(uud));
     ioctl(fd, UI_DEV_CREATE);
     
-    sleep(1);                                                                  // Allow the system to register device node
+    sleep(1);
     
     return fd;
 }

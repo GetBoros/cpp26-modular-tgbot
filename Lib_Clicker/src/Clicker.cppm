@@ -55,7 +55,7 @@ export struct UniqueFd
 export class AClicker
 {
 public:
-    void Init(bool is_clicker = false);
+    void Init(bool is_clicker = false, int clicker_delay = 0);
 
     bool Is_Mouse_With_Wheel(int fd);
     bool Is_Keyboard(int fd);
@@ -63,6 +63,6 @@ public:
     int Create_Virtual_Mouse();
 
 private:
-    int Clicker_Delay_MS = 500;  // ms 50ms base
+    int Clicker_Delay_MS = 75;  // ms 50ms base
 };
 //------------------------------------------------------------------------------------------------------------
