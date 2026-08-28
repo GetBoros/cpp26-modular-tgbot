@@ -14,11 +14,13 @@ import Clicker;
 void Handle_Clicker()
 {
     bool is_clicker;
+    int ms_time;
     AClicker clicker;
 
     is_clicker = true;
+    ms_time = 75;
 
-    clicker.Init(is_clicker, 50);
+    clicker.Init(is_clicker, ms_time);
 }
 //------------------------------------------------------------------------------------------------------------
 
