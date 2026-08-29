@@ -21,6 +21,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>/lib)  # store l
 
 #-----------------------------------------------------------------------------------------------------------
 add_subdirectory(Lib_TGBot)  # static library
+add_subdirectory(Lib_Server)  # static library
 add_subdirectory(Lib_Module)  # static library
 add_subdirectory(Lib_Clicker)  # static library
 add_subdirectory(app)

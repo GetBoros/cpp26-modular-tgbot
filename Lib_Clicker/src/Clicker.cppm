@@ -1,6 +1,6 @@
+//------------------------------------------------------------------------------------------------------------
 module;
 #include <unistd.h>
-
 export module Clicker;
 //------------------------------------------------------------------------------------------------------------
 import std;
@@ -21,7 +21,7 @@ export struct UniqueFd
     UniqueFd(const UniqueFd &other) = delete;
     UniqueFd &operator=(const UniqueFd &other) = delete;
     
-    UniqueFd(UniqueFd &&other) noexcept : File_Description(std::exchange(other.File_Description, -1)) {}
+    UniqueFd(UniqueFd &&other) noexcept : File_Description(std::exchange(other.File_Description, -1) ) {}
     
     UniqueFd &operator=(UniqueFd &&other) noexcept
     {
@@ -55,7 +55,7 @@ export struct UniqueFd
 export class AClicker
 {
 public:
-    void Init(bool is_clicker = false, int clicker_delay = 0);
+    void Init(bool is_clicker = false, int clicker_delay = 75);
 
     bool Is_Mouse_With_Wheel(int fd);
     bool Is_Keyboard(int fd);
