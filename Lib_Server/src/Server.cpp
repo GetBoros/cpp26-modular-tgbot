@@ -3,9 +3,6 @@ module;
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <cstring>
-#include <print>
-#include <string>
 module Lib_Server;
 //------------------------------------------------------------------------------------------------------------
 import std;
@@ -15,22 +12,42 @@ import std;
 
 
 //------------------------------------------------------------------------------------------------------------
+void Run_Ngrok()
+{
+    int exit_code;
+    const char *command_c_str;
+
+    // 1.0. Terminate old ngrok instances and launch new detached process
+    command_c_str = 
+        "killall -q ngrok; "
+        "ngrok http 8080 --url https://unharmed-encore-accustom.ngrok-free.dev > /dev/null 2>&1 &";
+
+    // 1.1. Execute shell command
+    exit_code = std::system(command_c_str);
+    if(exit_code == 0)
+        std::println("ngrok tunnel launched in background.");
+}
+//------------------------------------------------------------------------------------------------------------
 void Run_Server()
 {
+    bool is_options;
     int opt;
     int port;
     int server_fd;
     int client_fd;
-    int total_clicks;
+    int session_counter;
     socklen_t addr_len;
     long long bytes_read;
     struct sockaddr_in address;
-    char buffer[1024];
+    std::string request_str;
+    std::string response_body;
+    std::string http_response;
+    char buffer[2048];
 
     // 1.0. Prepare network configuration
     opt = 1;
     port = 8080;
-    total_clicks = 0;
+    session_counter = 0;
     addr_len = sizeof(address);
     std::memset(&address, 0, sizeof(address));
 
@@ -65,7 +82,7 @@ void Run_Server()
         return;
     }
 
-    std::println("C++26 Server started. Listening on port {}...", port);
+    std::println("C++26 Game Server started on port {}...", port);
 
     // 2.0. Infinite server request loop
     while(true)
@@ -82,22 +99,67 @@ void Run_Server()
 
         // 2.2. Read incoming request data
         bytes_read = read(client_fd, buffer, sizeof(buffer) - 1);
-        if(bytes_read > 0)
+        if(bytes_read <= 0)
         {
-            total_clicks++;
-            std::println("--> Incoming Request #{} ({} bytes)", total_clicks, bytes_read);
+            close(client_fd);
+            continue;
         }
 
-        // 2.3. Build HTTP response with updated click counter
-        const std::string json_payload = "{\"status\": \"ok\", \"server\": \"C++26\", \"clicks\": " + std::to_string(total_clicks) + "}\n";
-        const std::string http_response = 
-            "HTTP/1.1 200 OK\r\n"
+        request_str = std::string(buffer, bytes_read);
+
+        // 2.3. Handle CORS Preflight (OPTIONS request)
+        is_options = (request_str.starts_with("OPTIONS") == true);
+        if(is_options == true)
+        {
+            http_response = 
+                "HTTP/1.1 200 OK\r\n"
+                "Access-Control-Allow-Origin: *\r\n"
+                "Access-Control-Allow-Methods: POST, GET, OPTIONS\r\n"
+                "Access-Control-Allow-Headers: Content-Type, Authorization\r\n"
+                "Content-Length: 0\r\n"
+                "Connection: close\r\n\r\n";
+
+            send(client_fd, http_response.c_str(), http_response.size(), 0);
+            close(client_fd);
+            continue;
+        }
+
+        // 2.4. Route: POST /login
+        if(request_str.find("POST /login") != std::string::npos)
+        {
+            session_counter++;
+            const std::string session_token = "dao_session_token_" + std::to_string(session_counter);
+
+            std::println("--> [AUTH] User login request received! Issued Token: {}", session_token);
+
+            response_body = 
+                "{\"status\":\"success\","
+                "\"token\":\"" + session_token + "\","
+                "\"message\":\"Welcome to Cultivation Realm!\"}\n";
+
+            http_response = 
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: application/json\r\n"
+                "Access-Control-Allow-Origin: *\r\n"
+                "Access-Control-Allow-Methods: POST, GET, OPTIONS\r\n"
+                "Access-Control-Allow-Headers: Content-Type, Authorization\r\n"
+                "Content-Length: " + std::to_string(response_body.size()) + "\r\n"
+                "Connection: close\r\n\r\n" + response_body;
+
+            send(client_fd, http_response.c_str(), http_response.size(), 0);
+            close(client_fd);
+            continue;
+        }
+
+        // 2.5. Fallback 404 Route
+        response_body = "{\"status\":\"error\",\"message\":\"Endpoint not found\"}\n";
+        http_response = 
+            "HTTP/1.1 404 Not Found\r\n"
             "Content-Type: application/json\r\n"
             "Access-Control-Allow-Origin: *\r\n"
-            "Content-Length: " + std::to_string(json_payload.size()) + "\r\n"
-            "Connection: close\r\n\r\n" + json_payload;
+            "Content-Length: " + std::to_string(response_body.size()) + "\r\n"
+            "Connection: close\r\n\r\n" + response_body;
 
-        // 2.4. Send response and close ONLY the client socket
         send(client_fd, http_response.c_str(), http_response.size(), 0);
         close(client_fd);
     }
@@ -107,8 +169,9 @@ void Run_Server()
 }
 //------------------------------------------------------------------------------------------------------------
 void Handle_Lib_Server()
-{
+{// ngrok http 8080 --url https://unharmed-encore-accustom.ngrok-free.dev || http://localhost:4040/inspect/http debug
+    
+    Run_Ngrok();
     Run_Server();
-
 };
 //------------------------------------------------------------------------------------------------------------

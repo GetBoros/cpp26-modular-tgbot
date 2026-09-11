@@ -34,9 +34,9 @@ void Temp()
 //------------------------------------------------------------------------------------------------------------
 int main()
 {
-    Handle_Lib_Server();
+    // Handle_Lib_Server();
 
-    // Handle_Clicker();
+    Handle_Clicker();
     // Handle_TGBot();  // Bot for shop
     // Handle_Module();  // Bot for shop
     
