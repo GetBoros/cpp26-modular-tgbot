@@ -18,7 +18,7 @@ void Handle_Clicker()
     AClicker clicker;
 
     is_clicker = true;
-    ms_time = 75;
+    ms_time = 150;
 
     clicker.Init(is_clicker, ms_time);
 }
