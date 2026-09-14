@@ -19,12 +19,23 @@ set_target_properties(AApplication PROPERTIES
     CXX_MODULE_STD ON
 )
 #-------------------------------------------------------------------------------------------------------------
+target_compile_options(AApplication PRIVATE -Wno-template-body -Wno-unused-result)
+#-------------------------------------------------------------------------------------------------------------
 target_link_libraries(AApplication PRIVATE
     ALib_Clicker
     ALib_Server
     ALib_Module
     ALib_TGBot
+    ixwebsocket      # <-- Добавили
+    simdjson
+    ssl              # <-- OpenSSL
+    crypto           # <-- OpenSSL
+    z                # <-- ZLib компрессия
+    pthread          # <-- Потоки Linux
     ) # Link the library to the executable
 #-------------------------------------------------------------------------------------------------------------
-target_include_directories(AApplication PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)  # include directory library
+target_include_directories(AApplication PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    /usr/local/include   # <-- Добавили путь к заголовочным файлам
+)
 #-------------------------------------------------------------------------------------------------------------
