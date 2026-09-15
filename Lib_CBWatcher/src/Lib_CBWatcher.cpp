@@ -5,6 +5,9 @@ module;
 #include <string>
 module Lib_CBWatcher;
 //------------------------------------------------------------------------------------------------------------
+import std;
+import ACB_Fetcher;
+//------------------------------------------------------------------------------------------------------------
 
 
 
@@ -50,12 +53,16 @@ std::string get_field(const std::string& str, const std::string& key) {
 
 
 
-
-
-
 //------------------------------------------------------------------------------------------------------------
 void Handle_CBWatcher()
 {
+    ACB_Fetcher cb_fetcher;
+    std::string access_token = cb_fetcher.Find_Access_Token("germaine_jones");
+
+    std::cout << "[Результат шага 1]: " << access_token << "\n";
+
+    return;
+
     ix::WebSocket webSocket;
     std::string url = "wss://realtime.pa.highwebmedia.com/?access_token=eyJhbGciOiJIUzI1NiIsImtpZCI6IktTS3cyZy5MMzZJU2ciLCJ0eXAiOiJKV1QifQ.eyJpYXQiOjE3ODkzODkzNDAsImV4cCI6MTc4OTQ3NTc0MC4wLCJ4LWFibHktY2FwYWJpbGl0eSI6IntcInJvb21fdXNlcjpncm91cGVkOk5LTUpZSDU6VzQwNkU0VjowXCI6IFtcInByZXNlbmNlXCIsIFwic3Vic2NyaWJlXCJdLCBcInVzZXI6Z3JvdXBlZDpXNDA2RTRWXCI6IFtcInN1YnNjcmliZVwiXSwgXCJnbG9iYWw6cHVzaF9zZXJ2aWNlXCI6IFtcInN1YnNjcmliZVwiXSwgXCJyb29tOmdyb3VwZWQ6TktNSllINTowXCI6IFtcInN1YnNjcmliZVwiXSwgXCJyb29tOmZhbmNsdWI6TktNSllINVwiOiBbXCJzdWJzY3JpYmVcIl0sIFwicm9vbTpzaG9ydGNvZGU6TktNSllINVwiOiBbXCJzdWJzY3JpYmVcIl19IiwieC1hYmx5LWNsaWVudElkIjoiK3NocTMxeG1zbGtiLVc0MDZFNFYifQ.VhUoNhwqM1_cyibezZbnpKAxiQMbShBt5GcR9H7Fv9E&format=json&heartbeats=true&v=3&agent=ably-js/2.12.0 browser&remainPresentFor=0";
     

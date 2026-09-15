@@ -18,7 +18,7 @@ int main()
 {
     // Handle_Lib_Server();
 
-    Handle_Clicker();
+    // Handle_Clicker();
     Handle_CBWatcher();
 
     return 0;

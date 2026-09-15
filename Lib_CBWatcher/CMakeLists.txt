@@ -7,9 +7,11 @@ add_library(ALib_CBWatcher STATIC)  # Create a static library
 target_sources(ALib_CBWatcher
     PUBLIC
       FILE_SET CXX_MODULES FILES
+        src/CB_Fetcher.cppm
         src/Lib_CBWatcher.cppm
 
     PRIVATE
+        src/CB_Fetcher.cpp
         src/Lib_CBWatcher.cpp
 )
 #-------------------------------------------------------------------------------------------------------------
@@ -24,6 +26,7 @@ set_target_properties(ALib_CBWatcher PROPERTIES
 #-------------------------------------------------------------------------------------------------------------
 target_link_libraries(ALib_CBWatcher PRIVATE
     ixwebsocket
+    cpr::cpr
     simdjson
     ssl  # <-- OpenSSL
     crypto  # <-- OpenSSL
