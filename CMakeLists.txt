@@ -24,6 +24,7 @@ add_subdirectory(Lib_TGBot)  # static library
 add_subdirectory(Lib_Server)  # static library
 add_subdirectory(Lib_Module)  # static library
 add_subdirectory(Lib_Clicker)  # static library
+add_subdirectory(Lib_CBWatcher)  # static library
 add_subdirectory(app)
 #-----------------------------------------------------------------------------------------------------------
 if(UNIX AND NOT APPLE) # For linux we want to put the executable and .so files in build/bin
