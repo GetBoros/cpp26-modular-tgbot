@@ -7,6 +7,8 @@ import Lib_CBWatcher;
 import Lib_TGBot;
 import Lib_Clicker;
 import Lib_Server;
+import std;
+
 //------------------------------------------------------------------------------------------------------------
 
 
@@ -16,12 +18,27 @@ import Lib_Server;
 //------------------------------------------------------------------------------------------------------------
 int main()
 {
+
+    // Handle_Lib_Server();
+    // Handle_CBWatcher();
     // Handle_Lib_Server();
 
-    // Handle_Clicker();
-    Handle_CBWatcher();
-
+    Handle_Clicker();
+    
     return 0;
 }
+//------------------------------------------------------------------------------------------------------------
+
+
+
+
+// !!! HELP
+/*
+    - ALT + O - switch .cppm -> cpp
+    - CTRL + T - find class
+    - CTRL + SHIFT + O - Go to symbol in file
+    - SHIFT + ALT + H - Call Hierarchy
+    - 
+*/
 //------------------------------------------------------------------------------------------------------------
 

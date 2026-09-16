@@ -8,10 +8,12 @@ target_sources(ALib_CBWatcher
     PUBLIC
       FILE_SET CXX_MODULES FILES
         src/CB_Fetcher.cppm
+        src/CB_Room_Listener.cppm
         src/Lib_CBWatcher.cppm
 
     PRIVATE
         src/CB_Fetcher.cpp
+        src/CB_Room_Listener.cpp
         src/Lib_CBWatcher.cpp
 )
 #-------------------------------------------------------------------------------------------------------------
