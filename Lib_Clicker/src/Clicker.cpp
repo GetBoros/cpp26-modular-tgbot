@@ -1,42 +1,49 @@
-//------------------------------------------------------------------------------------------------------------
 module;
+
+// 1.0. POSIX and Linux kernel headers
 #include <cstdio>
+#include <cstring>
 #include <fcntl.h>
 #include <poll.h>
 #include <unistd.h>
+#include <linux/input.h>
 #include <linux/uinput.h>
+
+// 2.0. Standard library headers (bypasses GCC Bug 125468 with -freflection)
+#include <atomic>
+#include <chrono>
+#include <format>
+#include <print>
+#include <string>
+#include <thread>
+#include <utility>
+
 module Clicker;
+
 //------------------------------------------------------------------------------------------------------------
-import std;
-//------------------------------------------------------------------------------------------------------------
-
-
-
-
-// AClicker
 void AClicker::Init(bool is_clicker, const int clicker_delay)
 {
-    bool is_lmb_held = false;
-    std::atomic<bool> is_clicking_active = false;
-    int loop_index = 0;
-    UniqueFd temp_fd;
-    UniqueFd mouse_fd;
-    UniqueFd keyboard_fd;
-    UniqueFd uinput_fd;
-    std::jthread click_thread;
-    struct input_event ev;
-    struct pollfd fds[2];
-    std::string path;
-    char name[256] = {0};
+    // 1.0. Declaration of variables (strictly ordered by size from smallest to largest)
+    bool is_lmb_held = false;                                                  // 1 byte
+    std::atomic<bool> is_clicking_active = false;                              // 1 byte
+    int loop_index = 0;                                                        // 4 bytes
+    UniqueFd temp_fd;                                                          // 4..8 bytes
+    UniqueFd mouse_fd;                                                         // 4..8 bytes
+    UniqueFd keyboard_fd;                                                      // 4..8 bytes
+    UniqueFd uinput_fd;                                                        // 4..8 bytes
+    std::jthread click_thread;                                                 // 8 bytes
+    struct pollfd fds[2];                                                      // 16 bytes
+    struct input_event ev;                                                     // 24 bytes
+    std::string path;                                                          // 32 bytes
+    char name[256] = {0};                                                      // 256 bytes
 
     // 1.1. Initialize virtual mouse device
     Clicker_Delay_MS = clicker_delay;
-    uinput_fd = UniqueFd{ Create_Virtual_Mouse() };
+    uinput_fd = UniqueFd{Create_Virtual_Mouse()};
 
-    if(uinput_fd.Is_Valid() != true)
+    if(uinput_fd.Is_Valid() == false)
     {
         std::println(stderr, "Error: Cannot create virtual mouse /dev/uinput");
-
         return;
     }
 
@@ -44,43 +51,41 @@ void AClicker::Init(bool is_clicker, const int clicker_delay)
     for(loop_index = 0; loop_index < 32; loop_index++)
     {
         path = std::format("/dev/input/event{}", loop_index);
-        temp_fd = UniqueFd { open(path.c_str(), O_RDONLY) };
+        temp_fd = UniqueFd{open(path.c_str(), O_RDONLY)};
         
         if(temp_fd.Is_Valid() == true)
         {
-            if(mouse_fd.Is_Valid() != true && Is_Mouse_With_Wheel(static_cast<int>(temp_fd) ) == true)
+            if( (mouse_fd.Is_Valid() == false) && (Is_Mouse_With_Wheel(static_cast<int>(temp_fd)) == true) )
             {
-                ioctl(static_cast<int>(temp_fd), EVIOCGNAME(sizeof(name) ), name);
+                ioctl(static_cast<int>(temp_fd), EVIOCGNAME(sizeof(name)), name);
                 std::println("Connected to physical mouse: {}", name);
 
-                mouse_fd = std::move(temp_fd);  // Move descriptor ownership
+                mouse_fd = std::move(temp_fd);                                 // Move descriptor ownership
             }
-            else if(keyboard_fd.Is_Valid() != true && Is_Keyboard(static_cast<int>(temp_fd) ) == true)
+            else if( (keyboard_fd.Is_Valid() == false) && (Is_Keyboard(static_cast<int>(temp_fd)) == true) )
             {
-                ioctl(static_cast<int>(temp_fd), EVIOCGNAME(sizeof(name) ), name);
+                ioctl(static_cast<int>(temp_fd), EVIOCGNAME(sizeof(name)), name);
                 std::println("Connected to physical keyboard: {}", name);
 
-                keyboard_fd = std::move(temp_fd);  // Move descriptor ownership
+                keyboard_fd = std::move(temp_fd);                              // Move descriptor ownership
             }
 
-            if(mouse_fd.Is_Valid() == true && keyboard_fd.Is_Valid() == true)
+            if( (mouse_fd.Is_Valid() == true) && (keyboard_fd.Is_Valid() == true) )
             {
                 break;
             }
         }
     }
 
-    if(mouse_fd.Is_Valid() != true)
+    if(mouse_fd.Is_Valid() == false)
     {
         std::println(stderr, "Error: Physical mouse not found!");
-
         return;
     }
 
-    if(keyboard_fd.Is_Valid() != true)
+    if(keyboard_fd.Is_Valid() == false)
     {
         std::println(stderr, "Error: Physical keyboard not found!");
-
         return;
     }
 
@@ -88,9 +93,13 @@ void AClicker::Init(bool is_clicker, const int clicker_delay)
     std::println("--------------------------------------------------");
     std::println("CONTROLS:");
     if(is_clicker == true)
+    {
         std::println("Wheel UP   -> Start Auto-Clicker");
+    }
     else
+    {
         std::println("Wheel UP   -> Hold LMB");
+    }
     std::println("LMB/RMB Physical Click -> Release / Stop Clicker");
     std::println("Num 5      -> Stop & Exit program");
     std::println("--------------------------------------------------");
@@ -107,11 +116,11 @@ void AClicker::Init(bool is_clicker, const int clicker_delay)
         // 3.2. Handle mouse events
         if( (fds[0].revents & POLLIN) != 0)
         {
-            if(read(static_cast<int>(mouse_fd), &ev, sizeof(ev) ) > 0)
+            if(read(static_cast<int>(mouse_fd), &ev, sizeof(ev)) > 0)
             {
                 if( (ev.type == EV_REL) && (ev.code == REL_WHEEL) )
                 {
-                    if(ev.value > 0)  // Wheel rolled up
+                    if(ev.value > 0)                                           // Wheel rolled up
                     {
                         std::println("1 (Wheel up)");
 
@@ -125,9 +134,9 @@ void AClicker::Init(bool is_clicker, const int clicker_delay)
                                     while(is_clicking_active == true)
                                     {
                                         Hold_Mouse(uinput_fd_val, true, true);
-                                        std::this_thread::sleep_for(std::chrono::milliseconds(20) );  // Brief press
+                                        std::this_thread::sleep_for(std::chrono::milliseconds(20));
                                         Hold_Mouse(uinput_fd_val, false, true);
-                                        std::this_thread::sleep_for(std::chrono::milliseconds(Clicker_Delay_MS) );  // Delay between clicks
+                                        std::this_thread::sleep_for(std::chrono::milliseconds(Clicker_Delay_MS));
                                     }
                                 });
                                 std::println(">>> AUTO-CLICKER STARTED! (Click physical mouse to stop, Num 5 to exit)");
@@ -135,7 +144,7 @@ void AClicker::Init(bool is_clicker, const int clicker_delay)
                         }
                         else
                         {
-                            if(is_lmb_held != true)
+                            if(is_lmb_held == false)
                             {
                                 Hold_Mouse(static_cast<int>(uinput_fd), true, false);
                                 is_lmb_held = true;
@@ -146,7 +155,7 @@ void AClicker::Init(bool is_clicker, const int clicker_delay)
 
                 if( (ev.type == EV_KEY) && ( (ev.code == BTN_LEFT) || (ev.code == BTN_RIGHT) ) )
                 {
-                    if(ev.value == 1)  // Physical click detected
+                    if(ev.value == 1)                                          // Physical click detected
                     {
                         if(is_clicker == true)
                         {
@@ -177,9 +186,9 @@ void AClicker::Init(bool is_clicker, const int clicker_delay)
         // 3.3. Handle keyboard events (Num 5 exit)
         if( (fds[1].revents & POLLIN) != 0)
         {
-            if(read(static_cast<int>(keyboard_fd), &ev, sizeof(ev) ) > 0)
+            if(read(static_cast<int>(keyboard_fd), &ev, sizeof(ev)) > 0)
             {
-                if( (ev.type == EV_KEY) && (ev.code == KEY_KP5) && (ev.value == 1) )  // Num 5 pressed
+                if( (ev.type == EV_KEY) && (ev.code == KEY_KP5) && (ev.value == 1) )
                 {
                     std::println("Num 5 pressed -> Stopping and exiting...");
 
@@ -203,7 +212,7 @@ void AClicker::Init(bool is_clicker, const int clicker_delay)
                         }
                     }
 
-                    break;  // Exit main loop
+                    break;
                 }
             }
         }
@@ -214,86 +223,109 @@ void AClicker::Init(bool is_clicker, const int clicker_delay)
     
     std::println("Program finished.");
 }
+
 //------------------------------------------------------------------------------------------------------------
 bool AClicker::Is_Keyboard(int fd)
 {
     // 1.0. Declaration of variables
-    unsigned char evtype_bitmask[EV_MAX/8 + 1];  // 8 bytes
-    unsigned char key_bitmask[KEY_MAX/8 + 1];  // 96 bytes
+    unsigned char evtype_bitmask[EV_MAX / 8 + 1];                              // ~8 bytes
+    unsigned char key_bitmask[KEY_MAX / 8 + 1];                                // ~96 bytes
 
-    // 1.1. Initialization and payload preparation
-    std::memset(evtype_bitmask, 0, sizeof(evtype_bitmask) );
+    // 1.1. Clear buffers
+    std::memset(evtype_bitmask, 0, sizeof(evtype_bitmask));
     
     // 1.2. Execute queries and check KEY_KP5 capability
-    if(ioctl(fd, EVIOCGBIT(0, sizeof(evtype_bitmask) ), evtype_bitmask) < 0)
-        return false;
-
-    if( (evtype_bitmask[EV_KEY / 8] & (1 << (EV_KEY % 8) ) ) != 0 )
+    if(ioctl(fd, EVIOCGBIT(0, sizeof(evtype_bitmask)), evtype_bitmask) < 0)
     {
-        std::memset(key_bitmask, 0, sizeof(key_bitmask) );
-        
-        if(ioctl(fd, EVIOCGBIT(EV_KEY, sizeof(key_bitmask) ), key_bitmask) < 0)
-            return false;
-
-        if( (key_bitmask[KEY_KP5 / 8] & (1 << (KEY_KP5 % 8) ) ) != 0 ) 
-            return true;
+        return false;
     }
+
+    if( (evtype_bitmask[EV_KEY / 8] & (1 << (EV_KEY % 8))) != 0)
+    {
+        std::memset(key_bitmask, 0, sizeof(key_bitmask));
+        
+        if(ioctl(fd, EVIOCGBIT(EV_KEY, sizeof(key_bitmask)), key_bitmask) < 0)
+        {
+            return false;
+        }
+
+        if( (key_bitmask[KEY_KP5 / 8] & (1 << (KEY_KP5 % 8))) != 0) 
+        {
+            return true;
+        }
+    }
+
     return false;
 }
+
 //------------------------------------------------------------------------------------------------------------
 bool AClicker::Is_Mouse_With_Wheel(int fd)
 {
     // 1.0. Declaration of variables
-    unsigned char rel_bitmask[REL_MAX/8 + 1];  // 2 bytes
-    unsigned char evtype_bitmask[EV_MAX/8 + 1];  // 8 bytes
+    unsigned char rel_bitmask[REL_MAX / 8 + 1];                                // ~2 bytes
+    unsigned char evtype_bitmask[EV_MAX / 8 + 1];                              // ~8 bytes
 
-    // 1.1. Initialization and payload preparation
-    std::memset(evtype_bitmask, 0, sizeof(evtype_bitmask) );
+    // 1.1. Clear buffers
+    std::memset(evtype_bitmask, 0, sizeof(evtype_bitmask));
     
     // 1.2. Execute queries and check wheel presence
-    if(ioctl(fd, EVIOCGBIT(0, sizeof(evtype_bitmask) ), evtype_bitmask) < 0)
-        return false;
-
-    if( (evtype_bitmask[EV_REL / 8] & (1 << (EV_REL % 8) ) ) != 0 )
+    if(ioctl(fd, EVIOCGBIT(0, sizeof(evtype_bitmask)), evtype_bitmask) < 0)
     {
-        std::memset(rel_bitmask, 0, sizeof(rel_bitmask) );
-        
-        if(ioctl(fd, EVIOCGBIT(EV_REL, sizeof(rel_bitmask) ), rel_bitmask) < 0)
-            return false;
-
-        if( (rel_bitmask[REL_WHEEL / 8] & (1 << (REL_WHEEL % 8) ) ) != 0 ) 
-            return true;
+        return false;
     }
+
+    if( (evtype_bitmask[EV_REL / 8] & (1 << (EV_REL % 8))) != 0)
+    {
+        std::memset(rel_bitmask, 0, sizeof(rel_bitmask));
+        
+        if(ioctl(fd, EVIOCGBIT(EV_REL, sizeof(rel_bitmask)), rel_bitmask) < 0)
+        {
+            return false;
+        }
+
+        if( (rel_bitmask[REL_WHEEL / 8] & (1 << (REL_WHEEL % 8))) != 0) 
+        {
+            return true;
+        }
+    }
+
     return false;
 }
+
 //------------------------------------------------------------------------------------------------------------
 void AClicker::Hold_Mouse(int uinput_fd, bool is_press, bool is_quiet)
 {
-    struct input_event ie;  // 24 bytes
+    // 1.0. Declaration of variables
+    struct input_event ie;                                                     // 24 bytes
 
     // 1.1. Prepare and send key press event
-    std::memset(&ie, 0, sizeof(ie) );
+    std::memset(&ie, 0, sizeof(ie));
     ie.type = EV_KEY;
     ie.code = BTN_LEFT;
-    ie.value = is_press ? 1 : 0;
-    write(uinput_fd, &ie, sizeof(ie) );
+    ie.value = (is_press == true) ? 1 : 0;
+    write(uinput_fd, &ie, sizeof(ie));
 
     // 1.2. Send synchronization report event
-    std::memset(&ie, 0, sizeof(ie) );
+    std::memset(&ie, 0, sizeof(ie));
     ie.type = EV_SYN;
     ie.code = SYN_REPORT;
     ie.value = 0;
-    write(uinput_fd, &ie, sizeof(ie) );
+    write(uinput_fd, &ie, sizeof(ie));
 
     // 1.3. Print operation status if quiet mode is disabled
     if(is_quiet == false)
     {
         if(is_press == true)
+        {
             std::println(">>> LMB HELD! (To cancel, click the physical mouse)");
+        }
         else
+        {
             std::println(">>> LMB RELEASED!");
+        }
     }
 }
+
 //------------------------------------------------------------------------------------------------------------
 int AClicker::Create_Virtual_Mouse()
 {
@@ -305,14 +337,16 @@ int AClicker::Create_Virtual_Mouse()
     fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
 
     if(fd < 0)
+    {
         return -1;
+    }
 
     // 1.2. Configure supported virtual mouse buttons
     ioctl(fd, UI_SET_EVBIT, EV_KEY);
     ioctl(fd, UI_SET_KEYBIT, BTN_LEFT);
     
     // 1.3. Prepare virtual device identity structure
-    std::memset(&uud, 0, sizeof(uud) );
+    std::memset(&uud, 0, sizeof(uud));
     std::snprintf(uud.name, UINPUT_MAX_NAME_SIZE, "Virtual Clicker");
 
     uud.id.bustype = BUS_USB;
@@ -321,7 +355,7 @@ int AClicker::Create_Virtual_Mouse()
     uud.id.version = 1;
 
     // 1.4. Build and register the virtual device
-    write(fd, &uud, sizeof(uud) );
+    write(fd, &uud, sizeof(uud));
     ioctl(fd, UI_DEV_CREATE);
     
     sleep(1);

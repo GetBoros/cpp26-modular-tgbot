@@ -3,8 +3,6 @@ module;
 #include <unistd.h>
 export module Clicker;
 //------------------------------------------------------------------------------------------------------------
-import std;
-//------------------------------------------------------------------------------------------------------------
 export struct UniqueFd
 {
     ~UniqueFd() 
@@ -21,7 +19,10 @@ export struct UniqueFd
     UniqueFd(const UniqueFd &other) = delete;
     UniqueFd &operator=(const UniqueFd &other) = delete;
     
-    UniqueFd(UniqueFd &&other) noexcept : File_Description(std::exchange(other.File_Description, -1) ) {}
+    UniqueFd(UniqueFd &&other) noexcept : File_Description(other.File_Description)
+    {
+        other.File_Description = -1;
+    }
     
     UniqueFd &operator=(UniqueFd &&other) noexcept
     {
@@ -31,14 +32,21 @@ export struct UniqueFd
             {
                 ::close(File_Description);
             }
-            File_Description = std::exchange(other.File_Description, -1);
+            File_Description = other.File_Description;
+            other.File_Description = -1;
         }
         return *this;
     }
     
-    explicit operator int() const { return File_Description; }
+    explicit operator int() const 
+    { 
+        return File_Description; 
+    }
 
-    bool Is_Valid() const { return File_Description >= 0; }
+    bool Is_Valid() const 
+    { 
+        return File_Description >= 0; 
+    }
     
     void Reset() 
     { 
@@ -51,6 +59,7 @@ export struct UniqueFd
 
     int File_Description = -1;
 };
+
 //------------------------------------------------------------------------------------------------------------
 export class AClicker
 {
@@ -63,6 +72,6 @@ public:
     int Create_Virtual_Mouse();
 
 private:
-    int Clicker_Delay_MS = 75;  // ms 50ms base
+    int Clicker_Delay_MS = 75;
 };
 //------------------------------------------------------------------------------------------------------------

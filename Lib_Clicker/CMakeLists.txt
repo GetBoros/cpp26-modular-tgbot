@@ -9,10 +9,12 @@ target_sources(ALib_Clicker
       FILE_SET CXX_MODULES FILES
         src/Lib_Clicker.cppm
         src/Clicker.cppm
+        src/Test.cppm
 
     PRIVATE
         src/Lib_Clicker.cpp
         src/Clicker.cpp
+        src/Test.cpp
 )
 #-------------------------------------------------------------------------------------------------------------
 set_target_properties(ALib_Clicker PROPERTIES
@@ -22,5 +24,9 @@ set_target_properties(ALib_Clicker PROPERTIES
     CXX_MODULE_STD ON
 )
 #-------------------------------------------------------------------------------------------------------------
-# target_compile_options(ALib_Clicker PRIVATE -freflection)  # #include <meta>
+target_compile_options(ALib_Clicker
+    PRIVATE
+        -freflection  # add #include <meta>
+        -Wno-deprecated-declarations  # static_assert(std::is_trivial<CharType>::value, "CharType must be trivial")
+    )
 #-------------------------------------------------------------------------------------------------------------
