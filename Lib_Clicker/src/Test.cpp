@@ -30,8 +30,8 @@ constexpr std::string_view Enum_To_String(enum_type button_val)
 
     template for(constexpr auto enumerator_info : std::define_static_array(std::meta::enumerators_of(^^enum_type) ) )
     {
-        if(button_val == [:enumerator_info:])  // if Mouse_Button::LMB == "LMB"?
-            return std::meta::identifier_of(enumerator_info);  // return what?
+        if(button_val == [:enumerator_info:])  // if Mouse_Button::LMB == Mouse_Button::LMB?
+            return std::meta::identifier_of(enumerator_info);
     }
 
     return fallback_str;  // Return fallback if not matched
@@ -50,7 +50,7 @@ constexpr std::optional<enum_type> String_To_Enum(std::string_view name_str)
     template for(constexpr auto enumerator_info : std::define_static_array(std::meta::enumerators_of(^^enum_type) ) )
     {
         if(name_str == std::meta::identifier_of(enumerator_info) )  // Match input string against reflected static array
-            return [:enumerator_info:];  // return what?
+            return [:enumerator_info:];
     }
 
     return result_val;  // Return empty optional on failure
