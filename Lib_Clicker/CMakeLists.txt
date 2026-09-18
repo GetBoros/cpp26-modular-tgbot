@@ -9,12 +9,10 @@ target_sources(ALib_Clicker
       FILE_SET CXX_MODULES FILES
         src/Lib_Clicker.cppm
         src/Clicker.cppm
-        src/Test.cppm
 
     PRIVATE
         src/Lib_Clicker.cpp
         src/Clicker.cpp
-        src/Test.cpp
 )
 #-------------------------------------------------------------------------------------------------------------
 set_target_properties(ALib_Clicker PROPERTIES
