@@ -9,25 +9,45 @@ module Lib_Module_Reflection;
 
 
 
-//------------------------------------------------------------------------------------------------------------
-class ATest
+// Enum_To_String
+template <typename enum_type> requires std::is_enum_v<enum_type>
+constexpr std::string_view Enum_To_String(enum_type button_val)
 {
+    std::string_view fallback_str { "Unknown" };
 
-public:
-    virtual ~ATest() = default;
+    template for(constexpr auto enumerator_info : std::define_static_array(std::meta::enumerators_of(^^enum_type) ) )
+    {
+        if(button_val == [:enumerator_info:])  // if Mouse_Button::LMB == Mouse_Button::LMB?
+            return std::meta::identifier_of(enumerator_info);
+    }
 
-    ATest() : Is_Active(true), Variable(5), Data(15LL) { };
-
-    void Example_Func() {};
-
-    bool Is_Active;
-    int Variable;
-    long long Data;
-
-    static int Static_Variable;
-
-};
+    return fallback_str;  // Return fallback if not matched
+}
 //------------------------------------------------------------------------------------------------------------
+
+
+
+
+// String_To_Enum
+template <typename enum_type> requires std::is_enum_v<enum_type>  // only if enum
+constexpr std::optional<enum_type> String_To_Enum(std::string_view name_str)
+{
+    std::optional<enum_type> result_val { std::nullopt };
+
+    template for(constexpr auto enumerator_info : std::define_static_array(std::meta::enumerators_of(^^enum_type) ) )
+    {
+        if(name_str == std::meta::identifier_of(enumerator_info) )  // Match input string against reflected static array
+            return [:enumerator_info:];
+    }
+
+    return result_val;  // Return empty optional on failure
+}
+//------------------------------------------------------------------------------------------------------------
+
+
+
+
+// Set_Test
 template <typename type_name> void Set_Test(const type_name &object)
 {
     constexpr std::meta::info meta_info = ^^type_name;
@@ -64,9 +84,9 @@ template <typename type_name> void Set_Test(const type_name &object)
 
 
 
-//------------------------------------------------------------------------------------------------------------
-template <typename type_name>
-bool search_word_in_object(const type_name &obj, const char *search_word )
+// Search_Word_In_Object
+template <typename type_name> 
+bool Search_Word_In_Object(const type_name &obj, const char *search_word )
 {
     constexpr std::meta::info meta_info = ^^type_name;  // Cache meta-information about the type_name
     constexpr auto access_ctx = std::meta::access_context::unchecked();  // and private get
@@ -99,24 +119,9 @@ bool search_word_in_object(const type_name &obj, const char *search_word )
 
 
 
-// 
-class WeaponConfig
-{
-public:
-    const char *Weapon_Name;
-    const char *Description;
-    bool Is_Magic;
-    int Damage;
-};
-//------------------------------------------------------------------------------------------------------------
-class UserProfile
-{
-public:
-    const char *Nick_Name;
-    const char *Status_Text;
-    int User_Id;
-};
-//------------------------------------------------------------------------------------------------------------
+
+
+// Test
 void Test()
 {
     ATest test;
@@ -124,25 +129,46 @@ void Test()
     Set_Test(test);
 
     // Test 1: Weapon
-    UserProfile user;
-    WeaponConfig sword;
+    User_Profile user_profile;
+    Weapon_Config sword;
 
     sword.Damage = 50;
     sword.Weapon_Name = "Excalibur";
     sword.Description = "A very powerful holy sword";
     sword.Is_Magic = true;
 
-    user.User_Id = 777;
-    user.Nick_Name = "GetBoros";
-    user.Status_Text = "Looking for a holy artifact";
+    user_profile.User_Id = 777;
+    user_profile.Nick_Name = "GetBoros";
+    user_profile.Status_Text = "Looking for a holy artifact";
 
     // Looking for the word "holy" in different objects!
     const char *target_word = "holy";
 
-    bool is_in_sword = search_word_in_object(sword, target_word);
-    bool is_in_user = search_word_in_object(user, target_word);
+    bool is_in_sword = Search_Word_In_Object(sword, target_word);
+    bool is_in_user = Search_Word_In_Object(user_profile, target_word);
 
     std::println("Word '{}' in sword: {}", target_word, is_in_sword );
-    std::println("Word '{}' in user: {}", target_word, is_in_user );
+    std::println("Word '{}' in user profile: {}", target_word, is_in_user );
+}
+//------------------------------------------------------------------------------------------------------------
+void Test_01()
+{// Example how work reflection with enums
+
+    Mouse_Button active_button { Mouse_Button::RMB };
+    std::optional<Mouse_Button> parsed_button { std::nullopt };
+    std::string_view input_str {"RMB" };
+
+    std::println("Action performed by button: {}", Enum_To_String(active_button) );  // example current active button
+
+    parsed_button = String_To_Enum<Mouse_Button>(input_str);  // try to find enum if find print line
+    if(parsed_button.has_value() == true)
+        std::println("Parsed successfully: {}", Enum_To_String(parsed_button.value() ) );
+
+    // Enumerate all options at compile time
+    std::println("Supported buttons list: ");
+    template for(constexpr auto enumerator_info : std::define_static_array(std::meta::enumerators_of(^^Mouse_Button) ) )
+    {
+        std::println(" - {}", std::meta::identifier_of(enumerator_info));
+    }
 }
 //------------------------------------------------------------------------------------------------------------
