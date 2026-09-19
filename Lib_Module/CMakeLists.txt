@@ -8,6 +8,7 @@ target_sources(ALib_Module
       src/Module_Math.cppm
       src/Lib_Module.cppm
       src/Example_Reflection.cppm
+      src/Example_Templates.cppm
       src/Lib_Module_Concepts.cppm
       src/Lib_Module_Reflection.cppm
 
@@ -15,6 +16,7 @@ target_sources(ALib_Module
     src/Module_Math.cpp  # Hiddent module realization
     src/Lib_Module.cpp
     src/Example_Reflection.cpp
+    src/Example_Templates.cpp
     src/Lib_Module_Concepts.cpp
     src/Lib_Module_Reflection.cpp
 )

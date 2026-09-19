@@ -46,7 +46,7 @@ export struct ClickerConfig
 
     // Тайминги (мс)
     inline static int Press_Time_MS   = 20;                     // Длительность зажатия клика
-    inline static int LMB_Delay_MS    = 75;                     // Пауза между ударами ЛКМ
+    inline static int LMB_Delay_MS    = 250;                     // Пауза между ударами ЛКМ
     inline static int RMB_Interval_MS = 1000;                   // Пауза между ударами ПКМ (1 сек)
 };
 
