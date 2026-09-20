@@ -3,9 +3,14 @@ module;
 
 export module Example_Templates;
 //------------------------------------------------------------------------------------------------------------
-template<typename type_name> type_name Func(type_name test_0, type_name test_1)
+template<typename Type_Name> [[nodiscard]] Type_Name Func(Type_Name test_0, Type_Name test_1) noexcept
 {
     return test_0 + test_1;
+}
+//------------------------------------------------------------------------------------------------------------
+template<int Multiplier> [[nodiscard]] int Func_NTTP(int value) noexcept
+{
+    return Multiplier * value;
 }
 //------------------------------------------------------------------------------------------------------------
 export void Handle_Example_Templates();
