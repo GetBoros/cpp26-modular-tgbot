@@ -67,23 +67,46 @@ public:
 //------------------------------------------------------------------------------------------------------------
 #pragma region MODULE_2  // Compile and Runtime || constexpr constinit consteval
 //------------------------------------------------------------------------------------------------------------
-consteval int Example_Consteval() { return 36; };
+constinit int Example_Constinit = 57;  // Initialization in compile time but can be changed in runtime
 //------------------------------------------------------------------------------------------------------------
-constexpr int Example_Constexpr() { return 47; };
+consteval int Example_Consteval() { return 36; };  // Pure compile time 
 //------------------------------------------------------------------------------------------------------------
-constexpr int Example_Test(const int data)
-{
+constexpr int Example_Constexpr() { return 47; };  // Can be compile time or Runtime
+//------------------------------------------------------------------------------------------------------------
+constexpr int Example_Branches(const int data)
+{// Example with branches if in compile time return handled data if not throw msg with error or can be else
+
     if consteval
     {
-        // std::println("consteval {}", data);
-
-        return data;
+        return data * 2;  // compile time
     }
     else
     {
-        std::println("constexpr {}", data);
+        throw data - 1;  // runtime
+    }
+}
+//------------------------------------------------------------------------------------------------------------
+constexpr int Example_Allocate_Mem()
+{
+    int result;
+    int *data;
 
-        return data - 5;
+    data = new int[3] {10, 20, 30 };  // alloc mem in compile time
+    result = data[0] + data[1] + data[2];  // make some logic
+
+    delete []data;  // delete if not compile time error
+
+    return result;
+}
+//------------------------------------------------------------------------------------------------------------
+consteval
+{
+    constexpr int Players_Max = 25;
+    constexpr int Players_Min = 4;
+
+    if(Players_Max <= Players_Min)
+    {
+        throw 36;
     }
 }
 //------------------------------------------------------------------------------------------------------------

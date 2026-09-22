@@ -26,11 +26,15 @@ void Handle_Example_Templates()
     std::println("text {}", ctad_example);
 
     // Module 2
-    constexpr int test = Example_Constexpr();
-    result = [] static consteval { return Example_Constexpr(); } ();
-    result = Example_Consteval();
+    Example_Constinit = 88;  // can be changed
 
-    result = [] static consteval { return Example_Test(25); } ();
+    constexpr int test = Example_Constexpr();  // in compile time
+    result = [] static consteval { return Example_Constexpr(); } ();  // initialize by value from compile time
+    result = [] static consteval { return Example_Branches(25); } ();
+    result = Example_Consteval();  // init value from compile time func
+
+    constexpr int example_allocate_mem = Example_Allocate_Mem();
+    std::println("result {}", example_allocate_mem);
 
 }
 //------------------------------------------------------------------------------------------------------------
