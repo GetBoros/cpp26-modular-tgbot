@@ -117,6 +117,7 @@ void NLib_Module_Concepts::Print_Analize(auto is_input_val)
     }
     else
         std::println("Processing a basic value: {}", is_input_val);
+
 }
 //------------------------------------------------------------------------------------------------------------
 auto NLib_Module_Concepts::Print_Multiplied_Value(auto value)
@@ -140,6 +141,7 @@ void NLib_Module_Concepts::Compare_Types(auto type_first, auto type_second)
         std::println("The types is same");
     else
         std::println("The types is not same");
+
 }
 //------------------------------------------------------------------------------------------------------------
 void NLib_Module_Concepts::Compare_Derived(auto type_base, auto type_derived)
@@ -148,6 +150,7 @@ void NLib_Module_Concepts::Compare_Derived(auto type_base, auto type_derived)
         std::println("The types is derived");
     else
         std::println("The types is not derived");
+
 }
 //------------------------------------------------------------------------------------------------------------
 void NLib_Module_Concepts::Print_Custom_Concept(CIs_Large auto is_value_large)
@@ -155,6 +158,7 @@ void NLib_Module_Concepts::Print_Custom_Concept(CIs_Large auto is_value_large)
     constexpr std::string_view type_name = Get_Type_Name<decltype(is_value_large)>();
 
     std::println("The type '{}' is > 4 bytes! Value: {}", type_name, is_value_large);
+    
 }
 //------------------------------------------------------------------------------------------------------------
 void NLib_Module_Concepts::Print_If_Interactive(CIs_Interactive auto is_interactive)
