@@ -24,7 +24,7 @@ int main()
 
     // Handle_Clicker();
 
-    Handle_Module();  // broken after updates
+    Handle_Module();  // fixed after update
 
     return 0;
 }
