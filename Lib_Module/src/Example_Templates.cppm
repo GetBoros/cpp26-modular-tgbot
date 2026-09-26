@@ -110,6 +110,44 @@ consteval
     }
 }
 //------------------------------------------------------------------------------------------------------------
+class AConstexpr_Example
+{
+public:
+    constexpr ~AConstexpr_Example() {};  // can be set constexpr by compiler auto
+    constexpr AConstexpr_Example(int value) : Value(value) { Print_Message(); };  // compile or runtime
+    consteval AConstexpr_Example(double value) : Data(value) {};  // only compile time
+
+    virtual constexpr void Temp() {};
+
+    constexpr void Print_Message();
+    constexpr int Get_Value() const;  // compile or runtime
+    consteval int Get_Value() { return Value + 10; };  // only compile time
+
+    constexpr void Set_Value(int value) { Value = value; };
+
+private:
+    int Value = 0;
+    int Data = 0;
+    
+    static inline constinit int Test = 0;
+
+};
+//------------------------------------------------------------------------------------------------------------
+constexpr void AConstexpr_Example::Print_Message()
+{
+    if consteval {
+        Value = Value + 1;
+    }
+    else {
+        std::println("AConstexpr_Example in runtime ");
+    }
+}
+//------------------------------------------------------------------------------------------------------------
+constexpr int AConstexpr_Example::Get_Value() const
+{
+    return Value;
+}
+//------------------------------------------------------------------------------------------------------------
 #pragma endregion // MODULE_2
 //------------------------------------------------------------------------------------------------------------
 

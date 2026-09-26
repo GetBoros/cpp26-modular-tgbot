@@ -36,5 +36,8 @@ void Handle_Example_Templates()
     constexpr int example_allocate_mem = Example_Allocate_Mem();
     std::println("result {}", example_allocate_mem);
 
+    AConstexpr_Example constexpr_example_runtime(5);
+    constexpr AConstexpr_Example constexpr_example_compile_time(8);
+
 }
 //------------------------------------------------------------------------------------------------------------
