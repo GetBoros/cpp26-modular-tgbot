@@ -22,9 +22,9 @@ int main()
     // Handle_CBWatcher();
     // Handle_Lib_Server();
 
-    // Handle_Clicker();
+    Handle_Clicker();
 
-    Handle_Module();  // fixed after update
+    // Handle_Module();  // fixed after update
 
     return 0;
 }
