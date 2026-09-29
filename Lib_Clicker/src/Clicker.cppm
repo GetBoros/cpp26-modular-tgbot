@@ -81,7 +81,7 @@ private:
             {.type = EV_KEY, .code = button, .value = value},
             {.type = EV_SYN, .code = SYN_REPORT, .value = 0}
         };
-        ::write(fd, evs, sizeof(evs));
+        ::write(fd, evs, sizeof(evs) );
     }
 
     static int Create_Virtual_Mouse() 
