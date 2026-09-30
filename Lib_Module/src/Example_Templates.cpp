@@ -10,7 +10,7 @@ import std;
 
 
 //------------------------------------------------------------------------------------------------------------
-void Handle_Example_Templates()
+void Module_First()
 {
     int user_input;
     int result;
@@ -24,8 +24,12 @@ void Handle_Example_Templates()
 
     ACTAD_Example ctad_example { "Hello world" };  // CTAD example
     std::println("text {}", ctad_example);
+}
+//------------------------------------------------------------------------------------------------------------
+void Module_Second()
+{
+    int result;
 
-    // Module 2
     Example_Constinit = 88;  // can be changed
 
     constexpr int test = Example_Constexpr();  // in compile time
@@ -38,6 +42,41 @@ void Handle_Example_Templates()
 
     AConstexpr_Example constexpr_example_runtime(5);
     constexpr AConstexpr_Example constexpr_example_compile_time(8);
+}
+//------------------------------------------------------------------------------------------------------------
+void Module_Third()
+{
+    std::string_view test_runtime = "Prefix text suffix";
+    constexpr std::string_view prefix = "Prefix ";
+    constexpr std::string_view suffix = " suffix";
+    constexpr std::string_view test_compile_time = "Prefix text suffix";
+
+    if (test_runtime.starts_with(prefix) == true)
+    {
+        constexpr std::string_view clear_prefix = test_compile_time.substr(prefix.size() );
+
+        test_runtime.remove_prefix(prefix.size() );
+
+        static_assert(clear_prefix == "text suffix", "qwe");
+    }
+
+    if(test_runtime.ends_with(suffix) == true)
+    {
+        constexpr unsigned int new_len = test_compile_time.size() - suffix.size();
+        constexpr std::string_view clear_sufix = test_compile_time.substr(0, new_len);
+        
+        static_assert(clear_sufix == "Prefix text", "qwe");
+    }
+
+    std::println("example: {}", test_runtime);
+    std::println("example second: {}", test_compile_time);
+
+}
+//------------------------------------------------------------------------------------------------------------
+void Handle_Example_Templates()
+{
+    Module_Third();
+
 
 }
 //------------------------------------------------------------------------------------------------------------
