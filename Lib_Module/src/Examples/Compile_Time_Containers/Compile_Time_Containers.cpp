@@ -15,6 +15,15 @@ void String_View_Example(std::string_view str)
     constexpr std::string_view prefix = "Prefix ";
     constexpr std::string_view suffix = " suffix";
     constexpr std::string_view test_compile_time = "Prefix text suffix";
+    constexpr int space_count = std::ranges::count(prefix, ' ');
+    constexpr bool is_valid_format = std::ranges::all_of(prefix, [](char c)
+    {
+        return (c >= 'A' && c <= 'Z') || (c == '_');  // return true if all upper case
+    } );
+
+    static_assert(space_count == 1);  // if one space
+    static_assert(is_valid_format == false);  // if not all symbols are capsed like PRE_FIX
+    static_assert(std::ranges::contains(prefix, 'P') );
 
     if (str.starts_with(prefix) == true)  // if str have curr prefix remove it and check result
     {
@@ -41,29 +50,47 @@ void String_View_Example(std::string_view str)
     std::println("example second: {}", test_compile_time);
 }
 //------------------------------------------------------------------------------------------------------------
-consteval auto Get_Array()
+consteval int Return_Sum()
 {
-    std::array<std::string_view, 3> baked_array {};
-    std::vector<std::string_view> vec;
+    std::vector<int> vec = { 1, 5, 8, 9 };
 
-    vec.push_back("Hello 1");
-    vec.push_back("Hello 2");
-    vec.push_back("Hello 3");
+    return std::ranges::fold_left(vec, 0, std::plus<> {} );
+}
+//------------------------------------------------------------------------------------------------------------
+consteval bool Check_Containt_Num(const int num)
+{
+    std::vector<int> vec = { 1, 5, 8, 9 };
 
-    for (int i = 0; i < 3; i++)
-        baked_array[i] = vec[i];
+    return std::ranges::contains(vec, num);
+}
+//------------------------------------------------------------------------------------------------------------
+consteval auto Get_Sorted_Array()
+{
+    std::array<std::string_view, 4> baked_array {};
+    std::vector<std::string_view> str_vector { "banana", "apple", "cherry", "date", "apple" };
+
+    std::ranges::sort(str_vector);
+    auto duplicate_tail = std::ranges::unique(str_vector);
+    str_vector.erase(duplicate_tail.begin(), duplicate_tail.end() );
+    std::ranges::sort(str_vector, std::ranges::greater {} );  // from Z to A
+    std::ranges::sort(str_vector, {}, &std::string_view::size);  // sort by size( length )
+
+    std::ranges::copy(str_vector, baked_array.begin() );
+
+    // for (int i = 0; i < 4; i++)
+    //     baked_array[i] = str_vector[i];
 
     return baked_array;
 }
 //------------------------------------------------------------------------------------------------------------
-constexpr char RAW_JSON[] = {
+constexpr char Raw_Json[] = {
     #embed "hero.json"
     , '\0' // add for safty
 };
 //------------------------------------------------------------------------------------------------------------
-constexpr std::string_view JSON_VIEW(RAW_JSON, sizeof(RAW_JSON) - 1);
+constexpr std::string_view Json_View(Raw_Json, sizeof(Raw_Json) - 1);
 //------------------------------------------------------------------------------------------------------------
-constexpr std::string_view extract_hero_by_number(std::string_view json, unsigned int target_number)
+constexpr std::string_view Extract_Hero_By_Number(std::string_view json, unsigned int target_number)
 {
     int current_pos = 0;
     constexpr std::string_view key = "\"hero\": \"";  // find key
@@ -91,22 +118,28 @@ constexpr std::string_view extract_hero_by_number(std::string_view json, unsigne
 
 
 
+
 //------------------------------------------------------------------------------------------------------------
 void Module_Third_Examples()
 {
-    constexpr auto arr = Get_Array();
-    constexpr std::string_view first_hero = extract_hero_by_number(JSON_VIEW, 1);
-    constexpr std::string_view third_hero = extract_hero_by_number(JSON_VIEW, 3);
+    constexpr auto arr = Get_Sorted_Array();
+    constexpr std::string_view first_hero = Extract_Hero_By_Number(Json_View, 1);
+    constexpr std::string_view third_hero = Extract_Hero_By_Number(Json_View, 3);
 
     static_assert(first_hero == "Saitama", "Error");
     static_assert(third_hero == "Garro", "Error");
 
-    std::println("1-й герой из файла: {}", first_hero);
-    std::println("3-й герой из файла: {}", third_hero);
+    std::println("First hero from file: {}", first_hero);
+    std::println("Third hero from file: {}", third_hero);
 
-    std::println("text {}", arr);
+    std::println("Show example with sorted array {}", arr);
 
     //    Ranges и алгоритмы в Compile-Time:
+
+    constexpr bool result = Check_Containt_Num(8);
+    std::println("result {}", result);
+
+    std::println("integers sum: {}", Return_Sum() );
 
 }
 //------------------------------------------------------------------------------------------------------------
