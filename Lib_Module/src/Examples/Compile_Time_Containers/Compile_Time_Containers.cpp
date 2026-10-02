@@ -56,6 +56,38 @@ consteval auto Get_Array()
     return baked_array;
 }
 //------------------------------------------------------------------------------------------------------------
+constexpr char RAW_JSON[] = {
+    #embed "hero.json"
+    , '\0' // add for safty
+};
+//------------------------------------------------------------------------------------------------------------
+constexpr std::string_view JSON_VIEW(RAW_JSON, sizeof(RAW_JSON) - 1);
+//------------------------------------------------------------------------------------------------------------
+constexpr std::string_view extract_hero_by_number(std::string_view json, unsigned int target_number)
+{
+    int current_pos = 0;
+    constexpr std::string_view key = "\"hero\": \"";  // find key
+
+    for (unsigned int count = 1; count <= target_number; count++)
+    {
+        auto start = json.find(key, current_pos);  // find key by curr position
+        if (start == std::string_view::npos)
+            return "Unknown";
+
+        start += key.size();  // jump on key " 
+        auto end = json.find("\"", start);  // find closed "
+        if (end == std::string_view::npos)
+            return "Unknown";
+
+        if (count == target_number)  // if find with target number return name
+            return json.substr(start, end - start);
+
+        current_pos = end + 1;  // if not find switch for next and repeat
+    }
+
+    return "Unknown";
+}
+//------------------------------------------------------------------------------------------------------------
 
 
 
@@ -63,8 +95,18 @@ consteval auto Get_Array()
 void Module_Third_Examples()
 {
     constexpr auto arr = Get_Array();
+    constexpr std::string_view first_hero = extract_hero_by_number(JSON_VIEW, 1);
+    constexpr std::string_view third_hero = extract_hero_by_number(JSON_VIEW, 3);
 
-    String_View_Example("Prefix text suffix");
+    static_assert(first_hero == "Saitama", "Error");
+    static_assert(third_hero == "Garro", "Error");
+
+    std::println("1-й герой из файла: {}", first_hero);
+    std::println("3-й герой из файла: {}", third_hero);
+
+    std::println("text {}", arr);
+
+    //    Ranges и алгоритмы в Compile-Time:
 
 }
 //------------------------------------------------------------------------------------------------------------
