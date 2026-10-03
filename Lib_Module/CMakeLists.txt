@@ -6,6 +6,7 @@ target_sources(ALib_Module
   PUBLIC
     FILE_SET CXX_MODULES FILES  # Module interface
       src/Module_Math.cppm
+      src/Examples/Concepts/Concepts.cppm
       src/Examples/Templates/Templates.cppm
       src/Examples/Compile_Time/Compile_Time.cppm
       src/Examples/Compile_Time_Containers/Compile_Time_Containers.cppm
@@ -17,6 +18,7 @@ target_sources(ALib_Module
 
   PRIVATE
     src/Module_Math.cpp  # Hiddent module realization
+    src/Examples/Concepts/Concepts.cpp
     src/Examples/Templates/Templates.cpp
     src/Examples/Compile_Time/Compile_Time.cpp
     src/Examples/Compile_Time_Containers/Compile_Time_Containers.cpp

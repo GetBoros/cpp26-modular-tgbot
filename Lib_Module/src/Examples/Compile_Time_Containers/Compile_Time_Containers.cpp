@@ -120,8 +120,9 @@ constexpr std::string_view Extract_Hero_By_Number(std::string_view json, unsigne
 
 
 //------------------------------------------------------------------------------------------------------------
-void Module_Third_Examples()
+void Compile_Time_Containers_Preview()
 {
+    constexpr bool result = Check_Containt_Num(8);
     constexpr auto arr = Get_Sorted_Array();
     constexpr std::string_view first_hero = Extract_Hero_By_Number(Json_View, 1);
     constexpr std::string_view third_hero = Extract_Hero_By_Number(Json_View, 3);
@@ -131,14 +132,8 @@ void Module_Third_Examples()
 
     std::println("First hero from file: {}", first_hero);
     std::println("Third hero from file: {}", third_hero);
-
     std::println("Show example with sorted array {}", arr);
-
-    //    Ranges и алгоритмы в Compile-Time:
-
-    constexpr bool result = Check_Containt_Num(8);
     std::println("result {}", result);
-
     std::println("integers sum: {}", Return_Sum() );
 
 }
