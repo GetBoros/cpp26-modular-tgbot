@@ -5,17 +5,42 @@ export module Concepts;
 //------------------------------------------------------------------------------------------------------------
 import std;
 //------------------------------------------------------------------------------------------------------------
-template <typename Type> concept CNumber = std::integral<Type>;
+template <typename Type> concept Addable = requires (Type type_a, Type type_b)
+{
+    type_a + type_b;
+};
 //------------------------------------------------------------------------------------------------------------
-template<CNumber Type> Type Add(Type a, Type b)
+template <typename Type> concept Stringable = std::convertible_to<Type, std::string_view>;
+//------------------------------------------------------------------------------------------------------------
+template <typename Type> concept Numeric = std::integral<Type>;
+//------------------------------------------------------------------------------------------------------------
+template <Numeric Type> Type Example_Add(Type a, Type b)
 {
     return a + b;
 }
 //------------------------------------------------------------------------------------------------------------
-export void Test()
+template<Stringable Type> std::string_view Example_String_View(Type type, std::size_t offset)
 {
-    int test = Add(25, 32);
+    std::string_view temp = type;
 
-    std::println("result {}", test);
+    return temp.substr(offset);
 }
+//------------------------------------------------------------------------------------------------------------
+template<Addable Type> Type Example_Sum(Type type_a, Type type_b)
+{
+    return type_a + type_b;
+}
+//------------------------------------------------------------------------------------------------------------
+struct APoint
+{
+    APoint operator+(APoint point) const
+    {
+        return APoint { X + point.X, Y + point.Y };
+    }
+
+    int X;
+    int Y;
+};
+//------------------------------------------------------------------------------------------------------------
+export void Test();
 //------------------------------------------------------------------------------------------------------------
