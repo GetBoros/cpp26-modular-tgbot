@@ -19,9 +19,9 @@ void Test()
     example_string_view = Example_String_View("Hello world", 5);
     example_add = Example_Add(25, 32);
 
-    std::println("result Example_Add {}", example_add);
-    std::println("result Example_String_View {}", example_string_view);
-    std::println("result Example_Sum {}", point_c.X, point_c.Y);
+    std::println("result Example_Add: {}", example_add);
+    std::println("result Example_String_View: {}", example_string_view);
+    std::println("result Example_Sum: {}", point_c.X, point_c.Y);
 
 }
 //------------------------------------------------------------------------------------------------------------

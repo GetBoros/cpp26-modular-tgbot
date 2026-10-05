@@ -7,7 +7,11 @@ import std;
 //------------------------------------------------------------------------------------------------------------
 template <typename Type> concept Addable = requires (Type type_a, Type type_b)
 {
-    type_a + type_b;
+    requires sizeof(Type) <= 64;  // object size good for cash line L1
+
+    type_a.X;  // Must have var X
+    { type_a.Get_X() } noexcept -> std::convertible_to<int>;  // if func return int
+    type_a + type_b;  // require operate+ is overrided - true else false
 };
 //------------------------------------------------------------------------------------------------------------
 template <typename Type> concept Stringable = std::convertible_to<Type, std::string_view>;
@@ -37,6 +41,8 @@ struct APoint
     {
         return APoint { X + point.X, Y + point.Y };
     }
+
+    int Get_X() noexcept { return X; };
 
     int X;
     int Y;
