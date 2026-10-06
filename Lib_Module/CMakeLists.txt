@@ -8,6 +8,7 @@ target_sources(ALib_Module
       src/Module_Math.cppm
       src/Examples/Concepts/Concepts.cppm
       src/Examples/Templates/Templates.cppm
+      src/Examples/Reflections/Reflections.cppm
       src/Examples/Compile_Time/Compile_Time.cppm
       src/Examples/Compile_Time_Containers/Compile_Time_Containers.cppm
       src/Lib_Module.cppm
@@ -20,6 +21,7 @@ target_sources(ALib_Module
     src/Module_Math.cpp  # Hiddent module realization
     src/Examples/Concepts/Concepts.cpp
     src/Examples/Templates/Templates.cpp
+    src/Examples/Reflections/Reflections.cpp
     src/Examples/Compile_Time/Compile_Time.cpp
     src/Examples/Compile_Time_Containers/Compile_Time_Containers.cpp
     src/Lib_Module.cpp
