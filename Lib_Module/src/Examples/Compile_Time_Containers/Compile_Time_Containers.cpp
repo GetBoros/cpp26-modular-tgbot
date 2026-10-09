@@ -77,7 +77,7 @@ consteval auto Get_Sorted_Array()
 
     std::ranges::copy(str_vector, baked_array.begin() );
 
-    // for (int i = 0; i < 4; i++)
+    // for (int i = 0; i < 4; i++)  // if without std::ranges::copy
     //     baked_array[i] = str_vector[i];
 
     return baked_array;
@@ -86,7 +86,7 @@ consteval auto Get_Sorted_Array()
 constexpr char Raw_Json[] = {
     #embed "hero.json"
     , '\0' // add for safty
-};
+};  // example embed cpy hero.json to .rodata
 //------------------------------------------------------------------------------------------------------------
 constexpr std::string_view Json_View(Raw_Json, sizeof(Raw_Json) - 1);
 //------------------------------------------------------------------------------------------------------------
@@ -111,7 +111,6 @@ constexpr std::string_view Extract_Hero_By_Number(std::string_view json, unsigne
 
         current_pos = end + 1;  // if not find switch for next and repeat
     }
-
     return "Unknown";
 }
 //------------------------------------------------------------------------------------------------------------
