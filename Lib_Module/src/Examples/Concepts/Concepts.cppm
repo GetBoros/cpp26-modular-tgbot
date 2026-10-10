@@ -7,10 +7,10 @@ import std;
 //------------------------------------------------------------------------------------------------------------
 template <typename Type> concept Addable = requires (Type type_a, Type type_b)
 {
-    requires sizeof(Type) <= 64;  // object size good for cash line L1
+    requires sizeof(Type) <= 64;  // object size good for cash line L1 || size must be less 64
 
     type_a.X;  // Must have var X
-    { type_a.Get_X() } noexcept -> std::convertible_to<int>;  // if func return int
+    { type_a.Get_X() } noexcept -> std::convertible_to<int>;  // must have func Get_X and he return int
 
     type_a + type_b;  // require operate+ is overrided - true else false
 };
@@ -43,8 +43,9 @@ template<Addable Type> Type Example_Sum(Type type_a, Type type_b)
 }
 //------------------------------------------------------------------------------------------------------------
 template<Addable_Advanced Type> Type Example_Sum(Type type_a, Type type_b)
-{
-    type_a.Get_Y();
+{// extend Addable by check new method
+
+    type_a.Get_Y();  // must have func Get_Y
 
     std::println("Addable_Advanced called!");
 
@@ -90,7 +91,7 @@ struct APoint
 
     int Get_X() noexcept { return X; };
     int Get_Y() noexcept { return Y; };
-    std::string To_String() const { return std::format("Point(X: {}, Y: {})", X, Y); };
+    std::string To_String() const { return std::format("Point(X: {}, Y: {} )", X, Y); };
 
     int X;
     int Y;
