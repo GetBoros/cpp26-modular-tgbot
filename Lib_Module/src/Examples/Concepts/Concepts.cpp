@@ -9,7 +9,8 @@ module Concepts;
 
 //------------------------------------------------------------------------------------------------------------
 void Concepts_Preview()
-{
+{// Simple examples
+
     int example_add;
     std::string_view example_string_view;
     int numbers[] = { 1, 2, 3 };
@@ -26,6 +27,5 @@ void Concepts_Preview()
     std::println("result Example_Add: {}", example_add);
     std::println("result Example_String_View: {}", example_string_view);
     std::println("result Example_Sum: {}, {}", point_c.X, point_c.Y);
-
 }
 //------------------------------------------------------------------------------------------------------------
