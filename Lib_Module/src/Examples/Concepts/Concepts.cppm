@@ -27,11 +27,12 @@ template <typename Type> concept Numeric = std::integral<Type> || std::floating_
 //------------------------------------------------------------------------------------------------------------
 template <Numeric Type> Type Example_Add(Type a, Type b)
 {
-    return a + b;
+    return a + b;  // if types have overwrited operator+
 }
 //------------------------------------------------------------------------------------------------------------
 template<Stringable Type> std::string_view Example_String_View(Type type, std::size_t offset)
-{
+{// if Type can be std::convertible_to<Type, std::string_view>
+
     std::string_view temp = type;
 
     return temp.substr(offset);
@@ -47,13 +48,14 @@ template<Addable_Advanced Type> Type Example_Sum(Type type_a, Type type_b)
 
     type_a.Get_Y();  // must have func Get_Y
 
-    std::println("Addable_Advanced called!");
+    std::println("Addable_Advanced called!");  // !!! Temp
 
     return type_a + type_b;
 }
 //------------------------------------------------------------------------------------------------------------
 template <Numeric... Type> auto Example_Sum_All(Type... types)
-{
+{// a lot of the same types examples
+
     return (types + ...);
 }
 //------------------------------------------------------------------------------------------------------------
