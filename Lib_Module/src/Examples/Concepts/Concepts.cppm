@@ -61,7 +61,7 @@ template <Numeric... Type> auto Example_Sum_All(Type... types)
 //------------------------------------------------------------------------------------------------------------
 template <typename Type> void Example_Print_Info(const Type &type)
 {
-    if constexpr (requires { type.To_String(); } )
+    if constexpr (requires { type.To_String(); } )  // if Type have func To_String()
         std::println("Print Info result {}", type.To_String() );
     else
         std::println("Type doenst have func {}");
@@ -74,7 +74,7 @@ template <typename Type_A, typename Type_B> bool Example_Compare(Type_A type_a, 
 }
 //------------------------------------------------------------------------------------------------------------
 template <std::ranges::range Type> void Example_Print_Range(const Type &container)
-{// std::vector<int>, std::array<int, 5>, std::string_view
+{// Can print result from all container like std::vector<int>, std::array<int, 5>, std::string_view and other
 
     std::print("[ ");
 
@@ -86,14 +86,15 @@ template <std::ranges::range Type> void Example_Print_Range(const Type &containe
 //------------------------------------------------------------------------------------------------------------
 struct APoint
 {
-    APoint operator+(APoint point) const
+    APoint operator+(APoint point) const  // overwrite opertapr+ can now get sum for two points
     {
         return APoint { X + point.X, Y + point.Y };
     }
 
     int Get_X() noexcept { return X; };
     int Get_Y() noexcept { return Y; };
-    std::string To_String() const { return std::format("Point(X: {}, Y: {} )", X, Y); };
+
+    std::string To_String() const { return std::format("Point(X: {}, Y: {} )", X, Y); };  // return nice result
 
     int X;
     int Y;
