@@ -26,6 +26,6 @@ void Concepts_Preview()
 
     std::println("result Example_Add: {}", example_add);
     std::println("result Example_String_View: {}", example_string_view);
-    std::println("result Example_Sum: {}, {}", point_c.X, point_c.Y);
+    std::println("result Example_Sum: {}, {}", point_c.Get_X(), point_c.Get_Y() );
 }
 //------------------------------------------------------------------------------------------------------------

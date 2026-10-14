@@ -9,7 +9,7 @@ template <typename Type> concept Addable = requires (Type type_a, Type type_b)
 {
     requires sizeof(Type) <= 64;  // object size good for cash line L1 || size must be less 64
 
-    type_a.X;  // Must have var X
+    // type_a.X;  // Must have var X
     { type_a.Get_X() } noexcept -> std::convertible_to<int>;  // must have func Get_X and he return int
 
     type_a + type_b;  // require operate+ is overrided - true else false
@@ -86,16 +86,18 @@ template <std::ranges::range Type> void Example_Print_Range(const Type &containe
 //------------------------------------------------------------------------------------------------------------
 struct APoint
 {
+    APoint(int x = 0, int y = 0) noexcept : X(x), Y(y) { }
     APoint operator+(APoint point) const  // overwrite opertapr+ can now get sum for two points
     {
-        return APoint { X + point.X, Y + point.Y };
+        return APoint { X + point.Get_X(), Y + point.Get_Y() };
     }
 
-    int Get_X() noexcept { return X; };
-    int Get_Y() noexcept { return Y; };
+    int Get_X() noexcept { return X; }
+    int Get_Y() noexcept { return Y; }
 
     std::string To_String() const { return std::format("Point(X: {}, Y: {} )", X, Y); };  // return nice result
 
+private:
     int X;
     int Y;
 };
